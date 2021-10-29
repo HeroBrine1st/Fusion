@@ -7,8 +7,8 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    maven(url="https://m2.dv8tion.net/releases")
-    maven(url="https://jitpack.io")
+    maven(url = "https://m2.dv8tion.net/releases")
+    maven(url = "https://jitpack.io")
 }
 
 application {
@@ -23,10 +23,9 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:1.7.32")
 }
 
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
 }
-
 
 tasks {
     javadoc {

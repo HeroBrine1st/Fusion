@@ -3,9 +3,7 @@ package ru.herobrine1st.fusion.command;
 import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
-import net.dv8tion.jda.api.requests.RestAction;
 import okhttp3.HttpUrl;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -22,7 +20,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 public class ImageCommand implements CommandExecutor {
@@ -42,7 +39,7 @@ public class ImageCommand implements CommandExecutor {
         return httpBuilder.build().url();
     }
 
-    private MessageEmbed getEmbedFromJson(CommandContext ctx, JsonObject json, int index, int count) {
+    private MessageEmbed getEmbedFromJson(JsonObject json, int index, int count) {
         JsonObject image = json.getAsJsonArray("items").get(index).getAsJsonObject();
         EmbedBuilder builder = new EmbedBuilder()
                 .setTitle(
@@ -51,7 +48,7 @@ public class ImageCommand implements CommandExecutor {
                 .setImage(image.get("link").getAsString());
         if (image.get("mime").getAsString().equals("image/svg+xml"))
             builder.setDescription("SVG images may not display on some clients.");
-        return builder.setFooter("Image %s/%s\nQuery: \"%s\"".formatted(index + 1, count, ctx.<String>getArgument("query").orElseThrow()))
+        return builder.setFooter("Image %s/%s".formatted(index + 1, count))
                 .build();
     }
 
@@ -76,7 +73,7 @@ public class ImageCommand implements CommandExecutor {
         }, "prev", "next", "first", "last");
         CompletableFutureAction.of(requestFuture)
                 .flatMap(json -> ctx.getHook()
-                        .editOriginalEmbeds(getEmbedFromJson(ctx, json, index, size.getValue()))
+                        .editOriginalEmbeds(getEmbedFromJson(json, index, size.getValue()))
                         .setActionRow(Button.secondary("first", "<< First").withDisabled(index == 0),
                                 Button.primary("prev", "< Prev").withDisabled(index == 0),
                                 Button.primary("next", "Next >").withDisabled(index == size.getValue() - 1),
