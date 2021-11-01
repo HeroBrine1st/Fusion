@@ -1,11 +1,9 @@
 package ru.herobrine1st.fusion;
 
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.herobrine1st.fusion.api.command.CommandContext;
 import ru.herobrine1st.fusion.api.command.GenericArguments;
 import ru.herobrine1st.fusion.api.command.option.FusionCommand;
 import ru.herobrine1st.fusion.api.manager.CommandManager;
