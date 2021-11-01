@@ -1,9 +1,15 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
+    id("com.github.johnrengelman.shadow") version "5.2.0"
     application
 }
 
 group = "ru.herobrine1st.fusion"
 version = "1.0-SNAPSHOT"
+val mainClassNameFromFuckingRoot = "ru.herobrine1st.fusion.Fusion"
+
+project.setProperty("mainClassName", mainClassNameFromFuckingRoot)
 
 repositories {
     mavenCentral()
@@ -12,7 +18,8 @@ repositories {
 }
 
 application {
-    mainClass.set("ru.herobrine1st.fusion.Fusion")
+    // mainClassName is fucking reserved and deprecated
+    mainClass.set(mainClassNameFromFuckingRoot)
 }
 
 dependencies {
@@ -36,5 +43,9 @@ tasks {
     }
     compileTestJava {
         options.encoding = "UTF-8"
+    }
+    named<ShadowJar>("shadowJar") {
+        archiveClassifier.set("full")
+//        mergeServiceFiles()
     }
 }
