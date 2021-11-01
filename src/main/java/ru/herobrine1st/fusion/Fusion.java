@@ -46,5 +46,6 @@ public class Fusion {
                         GenericArguments.integer("max", "Maximum result count", 1, 50).setRequired(false))
                 .setExecutor(new YoutubeCommand())
                 .build());
+        Runtime.getRuntime().addShutdownHook(new Thread(jda::shutdown));
     }
 }
