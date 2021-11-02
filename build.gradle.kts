@@ -23,7 +23,7 @@ application {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:4.3.0_277")
+    implementation("net.dv8tion:JDA:4.3.0_339")
     implementation("com.github.HeroBrine1st:Fusion-framework:master-SNAPSHOT")
     implementation("com.google.code.gson:gson:2.8.8")
     implementation("com.squareup.okhttp3:okhttp:4.9.2")
