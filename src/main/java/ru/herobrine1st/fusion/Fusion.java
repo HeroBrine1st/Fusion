@@ -1,22 +1,41 @@
 package ru.herobrine1st.fusion;
 
+import com.mysql.cj.jdbc.Driver;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.Permission;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.Environment;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.herobrine1st.fusion.api.command.GenericArguments;
+import ru.herobrine1st.fusion.api.command.PermissionHandler;
 import ru.herobrine1st.fusion.api.command.option.FusionCommand;
+import ru.herobrine1st.fusion.api.command.option.FusionSubcommand;
 import ru.herobrine1st.fusion.api.manager.CommandManager;
 import ru.herobrine1st.fusion.command.ImageCommand;
+import ru.herobrine1st.fusion.command.SubscribeToVkGroupCommand;
 import ru.herobrine1st.fusion.command.YoutubeCommand;
+import ru.herobrine1st.fusion.parser.URLParserElement;
+import ru.herobrine1st.fusion.tasks.VkGroupFetchTask;
 
+import javax.persistence.Entity;
 import javax.security.auth.login.LoginException;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class Fusion {
     private static final Logger logger = LoggerFactory.getLogger("Fusion");
+    private static SessionFactory sessionFactory;
+    private static JDA jda;
 
-    public static void main(String[] args) {
-        JDA jda;
+    static {
+        System.setProperty("org.jboss.logging.provider", "slf4j");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
         try {
             jda = JDABuilder.createLight(Config.getDiscordToken())
                     .build();
@@ -25,6 +44,26 @@ public class Fusion {
             System.exit(-1);
             return;
         }
+
+        Configuration configuration = new Configuration()
+                .setProperty(Environment.URL, "jdbc:mysql://%s:%s@%s:%s/%s".formatted(
+                        Config.getMysqlUsername(),
+                        Config.getMysqlPassword(),
+                        Config.getMysqlHost(),
+                        Config.getMysqlPort(),
+                        Config.getMysqlDatabase()
+                ))
+                .setProperty(Environment.DRIVER, Driver.class.getCanonicalName())
+                .setProperty(Environment.HBM2DDL_AUTO, "update");
+        new Reflections("ru.herobrine1st.fusion")
+                .getTypesAnnotatedWith(Entity.class)
+                .stream()
+                .peek(clazz -> logger.trace("Registering entity %s in hibernate".formatted(clazz.getCanonicalName())))
+                .forEach(configuration::addAnnotatedClass);
+        sessionFactory = configuration.buildSessionFactory();
+
+        Pools.SCHEDULED_POOL.scheduleAtFixedRate(new VkGroupFetchTask(), 30, 30, TimeUnit.MINUTES);
+
         CommandManager commandManager = CommandManager.create(jda);
         commandManager.registerListeners();
         commandManager.registerCommand(FusionCommand.withArguments("img", "Search images")
@@ -33,6 +72,7 @@ public class Fusion {
                         GenericArguments.integer("index", "Image index", 0, 9).setRequired(false))
                 .setExecutor(new ImageCommand())
                 .build());
+
         commandManager.registerCommand(FusionCommand.withArguments("youtube", "Search youtube videos")
                 .addOptions(GenericArguments.string("query", "Search query"),
                         GenericArguments.string("type", "Type of resource. Default: video")
@@ -44,6 +84,29 @@ public class Fusion {
                         GenericArguments.integer("max", "Maximum result count", 1, 50).setRequired(false))
                 .setExecutor(new YoutubeCommand())
                 .build());
+        commandManager.updateCommands();
+
+        jda.awaitReady();
+
+        CommandManager testingCommandManager = CommandManager.create(jda);
+        testingCommandManager.registerListeners();
+        testingCommandManager.registerCommand(FusionCommand.withSubcommands("vkgroup", "Manage VK group subscriptions to channel")
+                        .addOptions(FusionSubcommand.builder("subscribe", "Subscribe to VK group")
+                                .setExecutor(new SubscribeToVkGroupCommand())
+                                .addOptions(new URLParserElement("group", "Link to group").setHost("vk.com"))
+                                //.setPermissionHandler(PermissionHandler.discordPermission(Permission.MANAGE_CHANNEL))
+                                .build())
+                .build());
+        testingCommandManager.updateCommands(Objects.requireNonNull(jda.getGuildById(530374773612478475L))).queue();
+
         Runtime.getRuntime().addShutdownHook(new Thread(jda::shutdown));
+    }
+
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+
+    public static JDA getJda() {
+        return jda;
     }
 }

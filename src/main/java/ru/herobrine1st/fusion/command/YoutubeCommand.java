@@ -1,7 +1,6 @@
 package ru.herobrine1st.fusion.command;
 
 import com.google.gson.JsonObject;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.interactions.components.Button;
 import okhttp3.HttpUrl;
 import org.jetbrains.annotations.NotNull;
@@ -13,9 +12,8 @@ import ru.herobrine1st.fusion.api.command.CommandExecutor;
 import ru.herobrine1st.fusion.api.command.State;
 import ru.herobrine1st.fusion.api.exception.CommandException;
 import ru.herobrine1st.fusion.api.restaction.CompletableFutureAction;
-import ru.herobrine1st.fusion.network.JsonRequest;
+import ru.herobrine1st.fusion.net.JsonRequest;
 
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -27,7 +25,7 @@ public class YoutubeCommand implements CommandExecutor {
     private final Random random = new Random();
     private static final Logger logger = LoggerFactory.getLogger(YoutubeCommand.class);
 
-    private URL getUrl(CommandContext ctx) {
+    private HttpUrl getUrl(CommandContext ctx) {
         HttpUrl.Builder httpBuilder = Objects.requireNonNull(HttpUrl.parse(URL)).newBuilder()
                 .addQueryParameter("part", "snippet")
                 .addQueryParameter("type", ctx.<String>getArgument("type").orElse("video")) // channel, playlist
@@ -35,7 +33,7 @@ public class YoutubeCommand implements CommandExecutor {
                 .addQueryParameter("maxResults", ctx.<Integer>getArgument("max").orElse(25).toString())
                 .addQueryParameter("q", URLEncoder.encode(ctx.<String>getArgument("query").orElseThrow(), StandardCharsets.UTF_8));
         ctx.<String>getArgument("type").ifPresent(it -> httpBuilder.addQueryParameter("fileType", it));
-        return httpBuilder.build().url();
+        return httpBuilder.build();
     }
 
     private static String getUrl(JsonObject json) {
@@ -56,9 +54,18 @@ public class YoutubeCommand implements CommandExecutor {
         ctx.deferReply().queue();
         State<Integer> size = ctx.useState(null);
         CompletableFuture<JsonObject> requestFuture = ctx.useEffect(() -> JsonRequest.makeRequest(getUrl(ctx))
-                .thenApply(json -> {
-                    size.setValue(json.getAsJsonArray("items").size());
-                    return json;
+                .thenCompose(jsonResponse -> {
+                    if (!jsonResponse.response().isSuccessful()) {
+                        JsonObject errorObject = jsonResponse.responseJson().getAsJsonObject("error");
+                        if (errorObject != null) {
+                            String status = errorObject.get("status").getAsString();
+                            String message = errorObject.get("message").getAsString();
+                            return CompletableFuture.failedFuture(new CommandException("Message: %s, Status: %s".formatted(message, status)));
+                        } else
+                            return CompletableFuture.failedFuture(new CommandException("Unknown HTTP error occurred. Code %s".formatted(jsonResponse.response().code())));
+                    }
+                    size.setValue(jsonResponse.responseJson().getAsJsonArray("items").size());
+                    return CompletableFuture.completedFuture(jsonResponse.responseJson());
                 }));
         int index = ctx.useComponent(0, (id, old) -> switch (id) {
             case "prev" -> old - 1;

@@ -1,0 +1,29 @@
+version: "3"
+services:
+  fusion:
+    build: .
+    restart: always
+    ports:
+      - "127.0.0.1:5005:5005"
+    env_file:
+      - .env.fusion.local
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=fusion
+    depends_on:
+      - mysql
+    networks:
+      - database
+  mysql:
+    image: mysql:latest
+    restart: always
+    environment:
+      - MYSQL_DATABASE=fusion
+    env_file:
+      - .env.mysql.local
+    networks:
+      - database
+networks:
+  database:

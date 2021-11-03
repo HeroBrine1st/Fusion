@@ -28,6 +28,10 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.8")
     implementation("com.squareup.okhttp3:okhttp:4.9.2")
     implementation("org.slf4j:slf4j-simple:1.7.32")
+    implementation("org.hibernate:hibernate-core:5.5.8.Final")
+    implementation("org.hibernate:hibernate-hikaricp:5.5.8.Final")
+    implementation("mysql:mysql-connector-java:8.0.26")
+    implementation("org.reflections:reflections:0.10.1")
 }
 
 java {

@@ -1,6 +1,6 @@
 /build
 /run
 .gradle
-.env
+.env*local
 .idea
 out
