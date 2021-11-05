@@ -32,7 +32,7 @@ public class ImageCommand implements CommandExecutor {
                 .addQueryParameter("searchType", "image")
                 .addQueryParameter("cx", Config.getGoogleCustomSearchEngineId())
                 .addQueryParameter("key", Config.getGoogleCustomSearchApiKey())
-                .addQueryParameter("safe", "1")
+                .addQueryParameter("safe", "0")
                 .addQueryParameter("q", URLEncoder.encode(ctx.<String>getArgument("query").orElseThrow(), StandardCharsets.UTF_8));
         ctx.<String>getArgument("type").ifPresent(it -> httpBuilder.addQueryParameter("fileType", it));
         return httpBuilder.build();
