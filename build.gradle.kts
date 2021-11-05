@@ -25,13 +25,13 @@ application {
 dependencies {
     implementation("net.dv8tion:JDA:4.3.0_339")
     implementation("com.github.HeroBrine1st:Fusion-framework:master-SNAPSHOT")
-    implementation("com.google.code.gson:gson:2.8.8")
+    implementation("com.google.code.gson:gson:2.8.9")
     implementation("com.squareup.okhttp3:okhttp:4.9.2")
     implementation("org.slf4j:slf4j-simple:1.7.32")
-    implementation("org.hibernate:hibernate-core:5.5.8.Final")
+    implementation("org.hibernate:hibernate-core:5.6.1.Final")
     implementation("org.hibernate:hibernate-hikaricp:5.5.8.Final")
     implementation("mysql:mysql-connector-java:8.0.26")
-    implementation("org.reflections:reflections:0.10.1")
+    implementation("org.reflections:reflections:0.10.2")
 }
 
 java {
