@@ -3,10 +3,11 @@ services:
   fusion:
     build: .
     restart: always
-    ports:
-      - "127.0.0.1:5005:5005"
+#    ports:
+#      - "127.0.0.1:5005:5005"
     env_file:
       - .env.fusion.local
+      - .env.fusion.secret.local
     environment:
       - MYSQL_USER=root
       - MYSQL_HOST=mysql
@@ -25,5 +26,7 @@ services:
       - .env.mysql.local
     networks:
       - database
+    volumes:
+      - "/var/lib/mysql"
 networks:
   database:

@@ -3,7 +3,6 @@ package ru.herobrine1st.fusion;
 import com.mysql.cj.jdbc.Driver;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.Permission;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
@@ -11,7 +10,6 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.herobrine1st.fusion.api.command.GenericArguments;
-import ru.herobrine1st.fusion.api.command.PermissionHandler;
 import ru.herobrine1st.fusion.api.command.option.FusionCommand;
 import ru.herobrine1st.fusion.api.command.option.FusionSubcommand;
 import ru.herobrine1st.fusion.api.manager.CommandManager;
@@ -24,7 +22,6 @@ import ru.herobrine1st.fusion.tasks.VkGroupFetchTask;
 
 import javax.persistence.Entity;
 import javax.security.auth.login.LoginException;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class Fusion {
@@ -36,7 +33,7 @@ public class Fusion {
         System.setProperty("org.jboss.logging.provider", "slf4j");
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         try {
             jda = JDABuilder.createLight(Config.getDiscordToken())
                     .build();
@@ -85,18 +82,16 @@ public class Fusion {
                         GenericArguments.integer("max", "Maximum result count", 1, 50).setRequired(false))
                 .setExecutor(new YoutubeCommand())
                 .build());
-        jda.awaitReady();
 
         commandManager.registerCommand(FusionCommand.withSubcommands("vkgroup", "Manage VK group subscriptions to channel")
                 .addOptions(FusionSubcommand.builder("subscribe", "Subscribe to VK group")
                         .setExecutor(new SubscribeToVkGroupCommand())
                         .addOptions(new URLParserElement("group", "Link to group").setHost("vk.com"))
                         .setPermissionHandler(new OwnerPermissionHandler())
-                        //.setPermissionHandler(PermissionHandler.discordPermission(Permission.MANAGE_CHANNEL))
                         .build())
                 .build());
 
-        commandManager.updateCommands().queue();
+        commandManager.updateCommands().queue(null, Throwable::printStackTrace);
 
         Runtime.getRuntime().addShutdownHook(new Thread(jda::shutdown));
     }
