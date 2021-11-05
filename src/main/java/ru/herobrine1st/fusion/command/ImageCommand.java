@@ -56,7 +56,9 @@ public class ImageCommand implements CommandExecutor {
         if (Config.getGoogleCustomSearchApiKey() == null || Config.getGoogleCustomSearchEngineId() == null) {
             throw new CommandException("No API key found");
         }
-        ctx.deferReply().queue();
+        ctx.deferReply(
+                Config.getImgCommandEphemeralList().contains(ctx.getUser().getId())
+        ).queue();
         State<Integer> size = ctx.useState(null);
         CompletableFuture<JsonObject> requestFuture = ctx.useEffect(() -> JsonRequest.makeRequest(getUrl(ctx))
                 .thenCompose(jsonResponse -> {

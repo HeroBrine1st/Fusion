@@ -1,6 +1,15 @@
 package ru.herobrine1st.fusion;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 public final class Config {
+    private static final Logger logger = LoggerFactory.getLogger(Config.class);
+
     private Config() {
     }
 
@@ -46,5 +55,19 @@ public final class Config {
 
     public static String getVkAPIVersion() {
         return "5.124";
+    }
+
+    public static String getOwnerId() {
+        return System.getenv("OWNER_ID");
+    }
+
+    public static Collection<String> getImgCommandEphemeralList() {
+        String env = System.getenv("IMG_COMMAND_EPHEMERAL_LIST");
+        if(env == null) {
+            logger.warn("No IMG_COMMAND_EPHEMERAL_LIST environment variable, using default instead");
+            return Collections.emptyList();
+        } else {
+            return List.of(env.split(","));
+        }
     }
 }
