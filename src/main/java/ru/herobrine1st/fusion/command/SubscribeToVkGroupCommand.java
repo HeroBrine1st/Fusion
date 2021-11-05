@@ -113,7 +113,7 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                                     entity.setLastWallPostId(json
                                             .getAsJsonObject("response")
                                             .getAsJsonArray("items")
-                                            .get(1).getAsJsonObject()
+                                            .get(0).getAsJsonObject()
                                             .get("id").getAsLong());
                                     return entity;
                                 });

@@ -19,6 +19,7 @@ import ru.herobrine1st.fusion.command.ImageCommand;
 import ru.herobrine1st.fusion.command.SubscribeToVkGroupCommand;
 import ru.herobrine1st.fusion.command.YoutubeCommand;
 import ru.herobrine1st.fusion.parser.URLParserElement;
+import ru.herobrine1st.fusion.permission.OwnerPermissionHandler;
 import ru.herobrine1st.fusion.tasks.VkGroupFetchTask;
 
 import javax.persistence.Entity;
@@ -84,20 +85,18 @@ public class Fusion {
                         GenericArguments.integer("max", "Maximum result count", 1, 50).setRequired(false))
                 .setExecutor(new YoutubeCommand())
                 .build());
-        commandManager.updateCommands();
-
         jda.awaitReady();
 
-        CommandManager testingCommandManager = CommandManager.create(jda);
-        testingCommandManager.registerListeners();
-        testingCommandManager.registerCommand(FusionCommand.withSubcommands("vkgroup", "Manage VK group subscriptions to channel")
-                        .addOptions(FusionSubcommand.builder("subscribe", "Subscribe to VK group")
-                                .setExecutor(new SubscribeToVkGroupCommand())
-                                .addOptions(new URLParserElement("group", "Link to group").setHost("vk.com"))
-                                //.setPermissionHandler(PermissionHandler.discordPermission(Permission.MANAGE_CHANNEL))
-                                .build())
+        commandManager.registerCommand(FusionCommand.withSubcommands("vkgroup", "Manage VK group subscriptions to channel")
+                .addOptions(FusionSubcommand.builder("subscribe", "Subscribe to VK group")
+                        .setExecutor(new SubscribeToVkGroupCommand())
+                        .addOptions(new URLParserElement("group", "Link to group").setHost("vk.com"))
+                        .setPermissionHandler(new OwnerPermissionHandler())
+                        //.setPermissionHandler(PermissionHandler.discordPermission(Permission.MANAGE_CHANNEL))
+                        .build())
                 .build());
-        testingCommandManager.updateCommands(Objects.requireNonNull(jda.getGuildById(530374773612478475L))).queue();
+
+        commandManager.updateCommands().queue();
 
         Runtime.getRuntime().addShutdownHook(new Thread(jda::shutdown));
     }
