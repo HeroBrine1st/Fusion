@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class YoutubeCommand implements CommandExecutor {
     private static final String URL = "https://www.googleapis.com/youtube/v3/search";
-    private final Random random = new Random();
     private static final Logger logger = LoggerFactory.getLogger(YoutubeCommand.class);
 
     private HttpUrl getUrl(CommandContext ctx) {
@@ -76,7 +75,7 @@ public class YoutubeCommand implements CommandExecutor {
         }, "prev", "next", "first", "last");
         CompletableFutureAction.of(requestFuture)
                 .flatMap(json -> ctx.getHook()
-                        .editOriginal("Video %s/%s for query \"%s\": %s".formatted(index + 1, size,
+                        .editOriginal("Video %s/%s for query \"%s\": %s".formatted(index + 1, size.getValue(),
                                 ctx.<String>getArgument("query").orElseThrow(),
                                 getUrl(json.getAsJsonArray("items").get(index).getAsJsonObject()))
                         )

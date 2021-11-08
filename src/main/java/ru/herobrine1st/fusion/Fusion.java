@@ -67,7 +67,11 @@ public class Fusion {
         commandManager.registerCommand(FusionCommand.withArguments("img", "Search images")
                 .addOptions(GenericArguments.string("query", "Search query"),
                         GenericArguments.string("type", "File type").setRequired(false),
-                        GenericArguments.integer("index", "Image index", 0, 9).setRequired(false))
+                        GenericArguments.integer("index", "Image index", 0, 9).setRequired(false),
+                        GenericArguments.string("safe", "Whether to enable safe search")
+                                .addChoice("No", "off")
+                                .addChoice("Yes", "Active")
+                                .setRequired(false))
                 .setExecutor(new ImageCommand())
                 .build());
 
