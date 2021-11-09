@@ -86,6 +86,7 @@ public class ImageCommand implements CommandExecutor {
                     if (!jsonResponse.responseJson().has("items"))
                         throw new CommandException("No results");
                     size.setValue(jsonResponse.responseJson().getAsJsonArray("items").size());
+                    if(size.getValue() == 0) throw new CommandException("No results");
                     return jsonResponse.responseJson();
                 }));
         int index = ctx.useComponent(0, (id, old) -> switch (id) {
@@ -93,7 +94,7 @@ public class ImageCommand implements CommandExecutor {
             case "next" -> old + 1;
             case "first" -> 0;
             case "last" -> size.getValue() - 1;
-            default -> throw new RuntimeException();
+            default -> old;
         }, "prev", "next", "first", "last");
         CompletableFutureAction.of(requestFuture)
                 .flatMap(json -> ctx.getHook()
