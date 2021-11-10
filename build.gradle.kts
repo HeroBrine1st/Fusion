@@ -29,7 +29,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.2")
     implementation("org.slf4j:slf4j-simple:1.7.32")
     implementation("org.hibernate:hibernate-core:5.6.1.Final")
-    implementation("org.hibernate:hibernate-hikaricp:5.5.8.Final")
+    implementation("org.hibernate:hibernate-hikaricp:5.6.1.Final")
     implementation("mysql:mysql-connector-java:8.0.26")
     implementation("org.reflections:reflections:0.10.2")
 }

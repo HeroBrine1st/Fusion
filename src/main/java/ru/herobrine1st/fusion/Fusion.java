@@ -58,7 +58,13 @@ public class Fusion {
                 .stream()
                 .peek(clazz -> logger.trace("Registering entity %s in hibernate".formatted(clazz.getCanonicalName())))
                 .forEach(configuration::addAnnotatedClass);
-        sessionFactory = configuration.buildSessionFactory();
+        try {
+            sessionFactory = configuration.buildSessionFactory();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            System.exit(-1);
+            return;
+        }
 
         Pools.SCHEDULED_POOL.scheduleAtFixedRate(new VkGroupFetchTask(), 30, 30, TimeUnit.MINUTES);
 
