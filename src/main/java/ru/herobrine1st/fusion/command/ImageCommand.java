@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import okhttp3.HttpUrl;
 import ru.herobrine1st.fusion.Config;
 import ru.herobrine1st.fusion.api.command.CommandContext;
@@ -14,13 +15,21 @@ public class ImageCommand extends AbstractSearchCommand {
     @Override
     protected HttpUrl getUrl(CommandContext ctx) {
         assert URL != null;
+        boolean nsfwAllowed;
+        if(ctx.getEvent().getChannel() instanceof TextChannel channel) {
+            nsfwAllowed = channel.isNSFW();
+        } else {
+            nsfwAllowed = true;
+        }
         HttpUrl.Builder httpBuilder = URL.newBuilder()
                 .addQueryParameter("num", "10")
                 .addQueryParameter("start", "1")
                 .addQueryParameter("searchType", "image")
                 .addQueryParameter("cx", Config.getGoogleCustomSearchEngineId())
                 .addQueryParameter("key", Config.getGoogleCustomSearchApiKey())
-                .addQueryParameter("safe", ctx.<String>getArgument("safe").orElse("active"))
+                .addQueryParameter("safe", ctx.<String>getArgument("safe")
+                        .filter(it -> nsfwAllowed)
+                        .orElse("active"))
                 .addQueryParameter("q", ctx.<String>getArgument("query").orElseThrow());
         ctx.<String>getArgument("type").ifPresent(it -> httpBuilder.addQueryParameter("fileType", it));
         return httpBuilder.build();
