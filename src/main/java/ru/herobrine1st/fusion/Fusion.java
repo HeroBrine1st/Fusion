@@ -66,7 +66,7 @@ public class Fusion {
             return;
         }
 
-        Pools.SCHEDULED_POOL.scheduleAtFixedRate(new VkGroupFetchTask(), 30, 30, TimeUnit.MINUTES);
+        Pools.SCHEDULED_POOL.scheduleAtFixedRate(new VkGroupFetchTask(), 1, 30, TimeUnit.MINUTES);
 
         CommandManager commandManager = CommandManager.create(jda);
         commandManager.registerListeners();
