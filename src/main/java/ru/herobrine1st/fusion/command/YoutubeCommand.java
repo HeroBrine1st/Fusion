@@ -16,7 +16,7 @@ public class YoutubeCommand extends AbstractSearchCommand {
         return URL.newBuilder()
                 .addQueryParameter("part", "snippet")
                 .addQueryParameter("type", ctx.<String>getArgument("type").orElse("video")) // channel, playlist
-                .addQueryParameter("key", Config.getGoogleCustomSearchApiKey())
+                .addQueryParameter("key", Config.getYoutubeSearchApiKey())
                 .addQueryParameter("maxResults", ctx.<Integer>getArgument("max").orElse(25).toString())
                 .addQueryParameter("q", ctx.<String>getArgument("query").orElseThrow())
                 .build();

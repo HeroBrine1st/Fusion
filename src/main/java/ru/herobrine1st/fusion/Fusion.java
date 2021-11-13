@@ -15,6 +15,7 @@ import ru.herobrine1st.fusion.api.command.option.FusionSubcommand;
 import ru.herobrine1st.fusion.api.manager.CommandManager;
 import ru.herobrine1st.fusion.command.ImageCommand;
 import ru.herobrine1st.fusion.command.SubscribeToVkGroupCommand;
+import ru.herobrine1st.fusion.command.UnsubscribeFromVkGroupCommand;
 import ru.herobrine1st.fusion.command.YoutubeCommand;
 import ru.herobrine1st.fusion.parser.URLParserElement;
 import ru.herobrine1st.fusion.permission.OwnerPermissionHandler;
@@ -95,10 +96,15 @@ public class Fusion {
 
         commandManager.registerCommand(FusionCommand.withSubcommands("vkgroup", "Manage VK group subscriptions to channel")
                 .addOptions(FusionSubcommand.builder("subscribe", "Subscribe to VK group")
-                        .setExecutor(new SubscribeToVkGroupCommand())
-                        .addOptions(new URLParserElement("group", "Link to group").setHost("vk.com"))
-                        .setPermissionHandler(new OwnerPermissionHandler())
-                        .build())
+                                .setExecutor(new SubscribeToVkGroupCommand())
+                                .addOptions(new URLParserElement("group", "Link to group").setHost("vk.com"))
+                                .setPermissionHandler(new OwnerPermissionHandler())
+                                .build(),
+                        FusionSubcommand.builder("unsubscribe", "Subscribe from VK group")
+                                .setExecutor(new UnsubscribeFromVkGroupCommand())
+                                .addOptions(new URLParserElement("group", "Link to group").setHost("vk.com"))
+                                .setPermissionHandler(new OwnerPermissionHandler())
+                                .build())
                 .build());
 
         commandManager.updateCommands().queue(null, Throwable::printStackTrace);

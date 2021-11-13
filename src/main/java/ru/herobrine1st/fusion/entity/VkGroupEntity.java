@@ -1,12 +1,7 @@
 package ru.herobrine1st.fusion.entity;
 
 
-import org.hibernate.Session;
-
 import javax.persistence.*;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.util.List;
 
 @Entity
@@ -64,15 +59,13 @@ public class VkGroupEntity {
         return subscribers;
     }
 
-    public void setSubscribers(List<VkGroupSubscriberEntity> subscribers) {
-        this.subscribers = subscribers;
-    }
-
     public void addSubscriber(VkGroupSubscriberEntity subscriber) {
         this.subscribers.add(subscriber);
+        subscriber.setGroup(this);
     }
 
     public void removeSubscriber(VkGroupSubscriberEntity subscriber) {
         this.subscribers.remove(subscriber);
+        subscriber.setGroup(null);
     }
 }

@@ -1,8 +1,5 @@
 package ru.herobrine1st.fusion.entity;
 
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
 import javax.persistence.*;
 
 @Entity
@@ -23,7 +20,7 @@ public class VkGroupSubscriberEntity {
     private long channelId;
 
     @ManyToOne
-    @JoinColumn(name = "group_id", nullable = false)
+    @JoinColumn(name = "group_id")
     private VkGroupEntity group;
 
     public long getId() {

@@ -9,13 +9,11 @@ import ru.herobrine1st.fusion.Pools;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 
 
 public class JsonRequest {
     public static record JsonResponse(JsonObject responseJson, Response response) {
-
     }
 
     private JsonRequest() {

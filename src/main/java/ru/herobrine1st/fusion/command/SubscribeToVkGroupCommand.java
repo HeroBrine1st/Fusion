@@ -20,6 +20,7 @@ import ru.herobrine1st.fusion.net.JsonRequest;
 import ru.herobrine1st.fusion.util.VkApiUtil;
 
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -59,17 +60,12 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                     JsonObject groupInfo = json.getAsJsonArray("response").get(0).getAsJsonObject();
                     long id = groupInfo.get("id").getAsLong();
                     try (Session session = Fusion.getSessionFactory().openSession()) {
-                        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-                        CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
-                        Root<VkGroupSubscriberEntity> selection = criteriaQuery.from(VkGroupSubscriberEntity.class);
-                        criteriaQuery.select(criteriaBuilder.count(selection))
-                                .where(criteriaBuilder.and(
-                                                criteriaBuilder.equal(selection.get("channelId"),
-                                                        Objects.requireNonNull(ctx.getEvent().getChannel()).getIdLong()),
-                                                criteriaBuilder.equal(selection.get("group").get("id"), id)
-                                        )
-                                );
-                        long count = session.createQuery(criteriaQuery).getSingleResult();
+                        TypedQuery<Long> query = session.createQuery(
+                                        "SELECT count(entity) FROM VkGroupSubscriberEntity entity " +
+                                        "WHERE entity.channelId=:channelId AND entity.group.id=:groupId", Long.class)
+                                .setParameter("channelId", Objects.requireNonNull(ctx.getEvent().getChannel()).getIdLong())
+                                .setParameter("groupId", id);
+                        long count = query.getSingleResult();
                         if (count > 0)
                             throw new CommandException("This channel is already subscribed to this group");
                         return groupInfo;

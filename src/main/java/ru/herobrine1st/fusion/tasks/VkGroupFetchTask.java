@@ -17,9 +17,6 @@ import ru.herobrine1st.fusion.entity.VkGroupSubscriberEntity;
 import ru.herobrine1st.fusion.net.JsonRequest;
 import ru.herobrine1st.fusion.util.VkApiUtil;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -49,13 +46,10 @@ public class VkGroupFetchTask implements Runnable {
     @Override
     public void run() {
         try (Session session = Fusion.getSessionFactory().openSession()) {
-            CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-            CriteriaQuery<VkGroupEntity> criteriaQuery = criteriaBuilder.createQuery(VkGroupEntity.class);
-            Root<VkGroupEntity> selection = criteriaQuery.from(VkGroupEntity.class);
-            criteriaQuery.select(selection)
-                    .where(criteriaBuilder.isNotEmpty(selection.get("subscribers")));
-
-            List<VkGroupEntity> groups = session.createQuery(criteriaQuery).getResultList();
+            List<VkGroupEntity> groups = session
+                    .createQuery("SELECT entity FROM VkGroupEntity entity WHERE entity.subscribers IS NOT EMPTY",
+                            VkGroupEntity.class)
+                    .getResultList();
             for (VkGroupEntity group : groups) {
                 JsonRequest.JsonResponse result = JsonRequest.makeRequest(
                         VkApiUtil.getHttpUrlBuilder("wall.get")
@@ -70,7 +64,7 @@ public class VkGroupFetchTask implements Runnable {
                 List<JsonObject> wall = jsonArrayToList(result.responseJson().getAsJsonObject("response").getAsJsonArray("items"))
                         .stream()
                         .filter(it -> it.get("id").getAsLong() > group.getLastWallPostId())
-                        .sorted(Comparator.comparing((it) -> it.get("id").getAsLong()))
+                        .sorted(Comparator.comparingLong((it) -> it.get("id").getAsLong()))
                         .toList();
                 for (JsonObject post : wall) {
                     long id = post.get("id").getAsLong();
