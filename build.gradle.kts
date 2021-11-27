@@ -1,15 +1,16 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("com.github.johnrengelman.shadow") version "7.1.0"
     application
+    kotlin("jvm") version "1.6.0"
 }
 
 group = "ru.herobrine1st.fusion"
 version = "1.0-SNAPSHOT"
-val mainClassNameFromFuckingRoot = "ru.herobrine1st.fusion.Fusion"
+val mainClassName = "ru.herobrine1st.fusion.Fusion"
 
-project.setProperty("mainClassName", mainClassNameFromFuckingRoot)
+project.setProperty("mainClassName", mainClassName)
 
 repositories {
     mavenCentral()
@@ -18,12 +19,11 @@ repositories {
 }
 
 application {
-    // mainClassName is fucking reserved and deprecated
-    mainClass.set(mainClassNameFromFuckingRoot)
+    mainClass.set(this@Build_gradle.mainClassName)
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:4.3.0_339")
+    implementation("net.dv8tion:JDA:4.4.0_350")
     implementation("com.github.HeroBrine1st:Fusion-framework:master-SNAPSHOT")
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("com.squareup.okhttp3:okhttp:4.9.2")
@@ -35,7 +35,13 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_16
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "16"
+    }
 }
 
 tasks {
@@ -50,6 +56,5 @@ tasks {
     }
     named<ShadowJar>("shadowJar") {
         archiveClassifier.set("full")
-//        mergeServiceFiles()
     }
 }

@@ -15,11 +15,13 @@ import ru.herobrine1st.fusion.Fusion;
 import ru.herobrine1st.fusion.entity.VkGroupEntity;
 import ru.herobrine1st.fusion.entity.VkGroupSubscriberEntity;
 import ru.herobrine1st.fusion.net.JsonRequest;
+import ru.herobrine1st.fusion.util.ModifiedEmbedBuilder;
 import ru.herobrine1st.fusion.util.VkApiUtil;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -70,11 +72,12 @@ public class VkGroupFetchTask implements Runnable {
                     long id = post.get("id").getAsLong();
                     group.setLastWallPostId(id);
                     String url = "https://vk.com/club%s?w=wall-%s_%s".formatted(group.getId(), group.getId(), id);
-                    MessageEmbed.AuthorInfo fuckingAuthorInfo = new MessageEmbed.AuthorInfo(group.getName(), url, group.getAvatarUrl(), null);
-                    MessageEmbed.ImageInfo fuckingImageInfo = null;
+                    EmbedBuilder embedBuilder = new ModifiedEmbedBuilder()
+                            .setTitle(null, url)
+                            .setAuthor(group.getName(), url, group.getAvatarUrl())
+                            .setTimestamp(Instant.ofEpochSecond(post.get("date").getAsLong()));
                     StringBuilder footerBuilder = new StringBuilder();
                     List<MessageEmbed> embeds = new ArrayList<>();
-                    OffsetDateTime offsetDateTime = OffsetDateTime.ofInstant(Instant.ofEpochSecond(post.get("date").getAsLong()), ZoneOffset.UTC);
                     if (post.has("copy_history") && post.getAsJsonArray("copy_history").size() > 0) {
                         post = post.getAsJsonArray("copy_history").get(0).getAsJsonObject();
                         footerBuilder.append("This post is a repost\n");
@@ -84,7 +87,7 @@ public class VkGroupFetchTask implements Runnable {
                         String additionalText = "... Post is too big (%s/2048 symbols)".formatted(text.length());
                         text = text.substring(0, 2048 - additionalText.length()) + additionalText;
                     }
-
+                    embedBuilder.setDescription(text);
                     if (post.has("attachments") && post.getAsJsonArray("attachments").size() > 0) {
                         List<JsonObject> attachments = jsonArrayToList(post.getAsJsonArray("attachments"));
                         if (!attachments.stream()
@@ -96,35 +99,38 @@ public class VkGroupFetchTask implements Runnable {
                         if (attachmentsPhoto.size() > 0) {
                             if (attachmentsPhoto.size() > 4)
                                 footerBuilder.append("Post contains more than 4 images\n");
-                            fuckingImageInfo = new MessageEmbed.ImageInfo(getBiggestPhotoURL(attachmentsPhoto.get(0)), null, 0, 0);
+                            embedBuilder.setImage(getBiggestPhotoURL(attachmentsPhoto.get(0)));
                             attachmentsPhoto.stream().skip(1).limit(3).forEach(it -> {
                                 // Because of this fucking resetting url builder when title is null
-                                embeds.add(new MessageEmbed(url, null, null, EmbedType.RICH,
-                                        null, Role.DEFAULT_COLOR_RAW, null, null,
-                                        null, null, null,
-                                        new MessageEmbed.ImageInfo(getBiggestPhotoURL(it), null, 0, 0),
-                                        null));
+                                embeds.add(new ModifiedEmbedBuilder()
+                                                .setTitle(null, url)
+                                                .setImage(getBiggestPhotoURL(it))
+                                        .build());
                             });
                         }
                         List<JsonObject> attachmentsLink = attachments.stream().filter(it -> "link".equals(it.get("type").getAsString())).toList();
                         if (attachmentsLink.size() > 0) {
                             for (JsonObject attachmentLink : attachmentsLink) {
-                                attachmentLink = attachmentLink.getAsJsonObject("link");
-                                EmbedBuilder linkEmbedBuilder = new EmbedBuilder()
-                                        .setTitle(attachmentLink.get("title").getAsString(), attachmentLink.get("url").getAsString());
-                                if (attachmentLink.has("description") && !attachmentLink.get("description").getAsString().isBlank())
-                                    linkEmbedBuilder.setDescription(attachmentLink.get("description").getAsString());
-                                if (attachmentLink.has("caption") && !attachmentLink.get("caption").getAsString().isBlank())
-                                    linkEmbedBuilder.setFooter(attachmentLink.get("caption").getAsString());
-                                if (attachmentLink.has("photo") && attachmentLink.get("photo") != null)
-                                    linkEmbedBuilder.setImage(getBiggestPhotoURL(attachmentLink));
-                                embeds.add(linkEmbedBuilder.build());
+                                try {
+                                    attachmentLink = attachmentLink.getAsJsonObject("link");
+                                    EmbedBuilder linkEmbedBuilder = new EmbedBuilder()
+                                            .setTitle(attachmentLink.get("title").getAsString(), attachmentLink.get("url").getAsString());
+                                    if (attachmentLink.has("description") && !attachmentLink.get("description").getAsString().isBlank())
+                                        linkEmbedBuilder.setDescription(attachmentLink.get("description").getAsString());
+                                    if (attachmentLink.has("caption") && !attachmentLink.get("caption").getAsString().isBlank())
+                                        linkEmbedBuilder.setFooter(attachmentLink.get("caption").getAsString());
+                                    if (attachmentLink.has("photo") && attachmentLink.get("photo") != null)
+                                        linkEmbedBuilder.setImage(getBiggestPhotoURL(attachmentLink));
+                                    embeds.add(linkEmbedBuilder.build());
+                                } catch (IllegalArgumentException e) { // апи вк опять какую-то хуйню творит
+                                    logger.error("Error adding link attachment", e);
+                                }
                             }
                         }
                     }
-                    embeds.add(0, new MessageEmbed(url, null, text, EmbedType.RICH, offsetDateTime,
-                            Role.DEFAULT_COLOR_RAW, null, null, fuckingAuthorInfo, null,
-                            new MessageEmbed.Footer(footerBuilder.toString(), null, null), fuckingImageInfo, null));
+                    embeds.add(0, embedBuilder
+                                    .setFooter(footerBuilder.toString())
+                            .build());
                     for (VkGroupSubscriberEntity it : group.getSubscribers()) {
                         Guild guild = Fusion.getJda().getGuildById(it.getGuildId());
                         TextChannel channel;
