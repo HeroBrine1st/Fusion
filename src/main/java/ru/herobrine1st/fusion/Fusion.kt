@@ -2,36 +2,32 @@ package ru.herobrine1st.fusion
 
 import com.mysql.cj.jdbc.Driver
 import net.dv8tion.jda.api.JDA
-import kotlin.jvm.JvmStatic
-import ru.herobrine1st.fusion.Fusion
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import org.hibernate.SessionFactory
 import org.hibernate.cfg.Configuration
-import javax.security.auth.login.LoginException
 import org.hibernate.cfg.Environment
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
-import ru.herobrine1st.fusion.Pools
-import ru.herobrine1st.fusion.tasks.VkGroupFetchTask
-import java.util.concurrent.TimeUnit
-import ru.herobrine1st.fusion.api.manager.CommandManager
-import ru.herobrine1st.fusion.api.command.option.FusionCommand
 import ru.herobrine1st.fusion.api.command.GenericArguments
-import ru.herobrine1st.fusion.command.ImageCommand
-import ru.herobrine1st.fusion.command.YoutubeCommand
+import ru.herobrine1st.fusion.api.command.option.FusionCommand
 import ru.herobrine1st.fusion.api.command.option.FusionSubcommand
+import ru.herobrine1st.fusion.api.manager.CommandManager
+import ru.herobrine1st.fusion.command.ImageCommand
 import ru.herobrine1st.fusion.command.SubscribeToVkGroupCommand
+import ru.herobrine1st.fusion.command.UnsubscribeFromVkGroupCommand
+import ru.herobrine1st.fusion.command.YoutubeCommand
 import ru.herobrine1st.fusion.parser.URLParserElement
 import ru.herobrine1st.fusion.permission.OwnerPermissionHandler
-import ru.herobrine1st.fusion.command.UnsubscribeFromVkGroupCommand
+import ru.herobrine1st.fusion.tasks.VkGroupFetchTask
 import java.time.Instant
-import java.lang.Runnable
+import java.util.concurrent.TimeUnit
 import javax.persistence.Entity
+import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
 
 object Fusion {
-    private val logger = LoggerFactory.getLogger("Fusion")
+    @JvmStatic private val logger = LoggerFactory.getLogger("Fusion")
     @JvmStatic lateinit var sessionFactory: SessionFactory
         private set
     @JvmStatic lateinit var jda: JDA
@@ -59,7 +55,7 @@ object Fusion {
             .getTypesAnnotatedWith(Entity::class.java)
             .stream()
             .peek { clazz: Class<*> -> logger.trace("Registering entity ${clazz.canonicalName} in hibernate") }
-            .forEach { annotatedClass: Class<*>? -> configuration.addAnnotatedClass(annotatedClass) }
+            .forEach { annotatedClass: Class<*> -> configuration.addAnnotatedClass(annotatedClass) }
         try {
             sessionFactory = configuration.buildSessionFactory()
         } catch (e: Throwable) {

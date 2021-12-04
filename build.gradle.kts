@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.0"
     application
-    kotlin("jvm") version "1.6.0"
+    kotlin("jvm") version "1.5.10"
 }
 
 group = "ru.herobrine1st.fusion"
@@ -23,10 +23,10 @@ application {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:4.4.0_350")
+    implementation("net.dv8tion:JDA:4.4.0_351")
     implementation("com.github.HeroBrine1st:Fusion-framework:master-SNAPSHOT")
     implementation("com.google.code.gson:gson:2.8.9")
-    implementation("com.squareup.okhttp3:okhttp:4.9.2")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("org.slf4j:slf4j-simple:1.7.32")
     implementation("org.hibernate:hibernate-core:5.6.1.Final")
     implementation("org.hibernate:hibernate-hikaricp:5.6.1.Final")

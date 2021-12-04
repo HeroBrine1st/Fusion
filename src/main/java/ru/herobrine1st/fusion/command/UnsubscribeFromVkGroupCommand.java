@@ -21,7 +21,7 @@ import java.util.concurrent.CompletionException;
 import java.util.regex.Pattern;
 
 public class UnsubscribeFromVkGroupCommand implements CommandExecutor {
-    private static final Pattern pattern = Pattern.compile("(?:https?://)?vk\\.com/(?:club(\\d+)|([^/]+))");
+    private static final Pattern pattern = Pattern.compile("(?:https?://)?vk\\.com/(?:(?:club|public)(\\d+)|([^/]+))");
     private static final Logger logger = LoggerFactory.getLogger(UnsubscribeFromVkGroupCommand.class);
 
     @Override
@@ -30,7 +30,7 @@ public class UnsubscribeFromVkGroupCommand implements CommandExecutor {
         HttpUrl url = ctx.<HttpUrl>getArgument("group").orElseThrow();
         var matcher = pattern.matcher(url.toString());
         if (!matcher.matches()) {
-            ctx.getHook().sendMessage("URL is not group").queue();
+            ctx.getHook().sendMessage("URL is not leading to a group").queue();
             return;
         }
         String groupId = Objects.requireNonNullElse(matcher.group(2), matcher.group(1));

@@ -30,7 +30,7 @@ import java.util.concurrent.CompletionException;
 import java.util.regex.Pattern;
 
 public class SubscribeToVkGroupCommand implements CommandExecutor {
-    private static final Pattern pattern = Pattern.compile("(?:https?://)?vk\\.com/(?:club(\\d+)|([^/]+))");
+    private static final Pattern pattern = Pattern.compile("(?:https?://)?vk\\.com/(?:(?:club|public)(\\d+)|([^/]+))");
     private static final Logger logger = LoggerFactory.getLogger(SubscribeToVkGroupCommand.class);
 
     @Override
@@ -75,7 +75,7 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                     try (Session session = Fusion.getSessionFactory().openSession()) {
                         TypedQuery<Long> query = session.createQuery(
                                         "SELECT count(entity) FROM VkGroupSubscriberEntity entity " +
-                                        "WHERE entity.channelId=:channelId AND entity.group.id=:groupId", Long.class)
+                                                "WHERE entity.channelId=:channelId AND entity.group.id=:groupId", Long.class)
                                 .setParameter("channelId", Objects.requireNonNull(ctx.getEvent().getChannel()).getIdLong())
                                 .setParameter("groupId", id);
                         long count = query.getSingleResult();
