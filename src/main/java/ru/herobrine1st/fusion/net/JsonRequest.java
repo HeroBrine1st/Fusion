@@ -35,7 +35,6 @@ public class JsonRequest {
         return makeRequest(url, data, method, JsonObject.class);
     }
 
-
     public static @NotNull <T> CompletableFuture<JsonResponse<T>> makeRequest(HttpUrl url, @Nullable JsonObject data,
                                                                               @NotNull String method, Class<T> clazz) {
         CompletableFuture<JsonResponse<T>> completableFuture = new CompletableFuture<>();

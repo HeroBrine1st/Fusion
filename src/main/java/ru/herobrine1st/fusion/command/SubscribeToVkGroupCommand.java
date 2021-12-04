@@ -88,13 +88,12 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                     long id = groupInfo.get("id").getAsLong();
                     VkGroupEntity entity;
                     try (Session session = Fusion.getSessionFactory().openSession()) {
-                        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-                        CriteriaQuery<VkGroupEntity> criteriaQuery = criteriaBuilder.createQuery(VkGroupEntity.class);
-                        Root<VkGroupEntity> selection = criteriaQuery.from(VkGroupEntity.class);
-                        criteriaQuery.select(selection)
-                                .where(criteriaBuilder.equal(selection.get("id"), id));
+                        TypedQuery<VkGroupEntity> query = session.createQuery(
+                                        "SELECT entity FROM VkGroupEntity entity " +
+                                                "WHERE entity.id=:id", VkGroupEntity.class)
+                                .setParameter("id", id);
                         try {
-                            entity = session.createQuery(criteriaQuery).getSingleResult();
+                            entity = query.getSingleResult();
                         } catch (NoResultException exception) {
                             entity = new VkGroupEntity();
                             entity.setId(id);
