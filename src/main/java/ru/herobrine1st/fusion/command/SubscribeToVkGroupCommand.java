@@ -39,14 +39,27 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
         HttpUrl url = ctx.<HttpUrl>getArgument("group").orElseThrow();
         var matcher = pattern.matcher(url.toString());
         if (!matcher.matches()) {
-            ctx.getHook().sendMessage("URL is not group").queue();
+            ctx.getHook().sendMessage("URL is not leading to a group").queue();
             return;
         }
         String groupId = Objects.requireNonNullElse(matcher.group(2), matcher.group(1));
-        JsonRequest.makeRequest(
+        new CompletableFuture<Void>()
+                .completeAsync(() -> {
+                    try (Session session = Fusion.getSessionFactory().openSession()) {
+                        TypedQuery<Long> query = session.createQuery(
+                                        "SELECT count(entity) FROM VkGroupSubscriberEntity entity " +
+                                                "WHERE entity.channelId=:channelId", Long.class)
+                                .setParameter("channelId", Objects.requireNonNull(ctx.getEvent().getChannel()).getIdLong());
+                        long count = query.getSingleResult();
+                        if (count >= 100)
+                            throw new CommandException("This channel has reached 100 subscriptions limit");
+                    }
+                    return null;
+                }, Pools.CONNECTION_POOL)
+                .thenCompose(unused -> JsonRequest.makeRequest(
                         VkApiUtil.getHttpUrlBuilder("groups.getById")
                                 .addQueryParameter("group_id", groupId)
-                                .build())
+                                .build()))
                 .thenApply(jsonResponse -> {
                     if (!jsonResponse.response().isSuccessful() || jsonResponse.responseJson().has("error")) {
                         logger.error("Error fetching group information");
@@ -109,7 +122,7 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                                     entity.setLastWallPostId(json
                                             .getAsJsonObject("response")
                                             .getAsJsonArray("items")
-                                            .get(0).getAsJsonObject()
+                                            .get(0).getAsJsonObject()// FIXME filter is_pinned
                                             .get("id").getAsLong());
                                     return entity;
                                 });
