@@ -39,13 +39,13 @@ public class UnsubscribeFromVkGroupCommand implements CommandExecutor {
                                 .addQueryParameter("group_id", groupId)
                                 .build())
                 .thenApply(jsonResponse -> {
-                    if (!jsonResponse.response().isSuccessful() || jsonResponse.responseJson().has("error")) {
+                    if (!jsonResponse.response().isSuccessful() || jsonResponse.json().has("error")) {
                         logger.error("Error fetching group information");
                         logger.error("Id: " + groupId);
-                        logger.error(jsonResponse.responseJson().toString());
+                        logger.error(jsonResponse.json().toString());
                         throw new CommandException("Error fetching group information");
                     }
-                    return jsonResponse.responseJson();
+                    return jsonResponse.json();
                 })
                 .thenAcceptAsync(json -> {
                     JsonObject groupInfo = json.getAsJsonArray("response").get(0).getAsJsonObject();

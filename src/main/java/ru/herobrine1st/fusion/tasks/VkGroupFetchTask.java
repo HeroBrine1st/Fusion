@@ -19,9 +19,6 @@ import ru.herobrine1st.fusion.util.ModifiedEmbedBuilder;
 import ru.herobrine1st.fusion.util.VkApiUtil;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -53,17 +50,17 @@ public class VkGroupFetchTask implements Runnable {
                             VkGroupEntity.class)
                     .getResultList();
             for (VkGroupEntity group : groups) {
-                JsonRequest.JsonResponse result = JsonRequest.makeRequest(
+                JsonRequest.JsonResponse<JsonObject> result = JsonRequest.makeRequest(
                         VkApiUtil.getHttpUrlBuilder("wall.get")
                                 .addQueryParameter("owner_id", String.valueOf(-group.getId()))
                                 .build()
                 ).join();
-                if (!result.response().isSuccessful() || result.responseJson().has("error")) {
+                if (!result.response().isSuccessful() || result.json().has("error")) {
                     logger.error("Exception fetching vk wall");
                     logger.error(result.response().toString());
                     continue;
                 }
-                List<JsonObject> wall = jsonArrayToList(result.responseJson().getAsJsonObject("response").getAsJsonArray("items"))
+                List<JsonObject> wall = jsonArrayToList(result.json().getAsJsonObject("response").getAsJsonArray("items"))
                         .stream()
                         .filter(it -> it.get("id").getAsLong() > group.getLastWallPostId())
                         .sorted(Comparator.comparingLong((it) -> it.get("id").getAsLong()))

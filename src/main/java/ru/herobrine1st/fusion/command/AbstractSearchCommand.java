@@ -2,7 +2,6 @@ package ru.herobrine1st.fusion.command;
 
 import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
@@ -41,7 +40,7 @@ public abstract class AbstractSearchCommand implements CommandExecutor {
         CompletableFuture<JsonObject> requestFuture = ctx.useEffect(() -> JsonRequest.makeRequest(getUrl(ctx))
                 .thenApply(jsonResponse -> {
                     if (!jsonResponse.response().isSuccessful()) {
-                        JsonObject errorObject = jsonResponse.responseJson().getAsJsonObject("error");
+                        JsonObject errorObject = jsonResponse.json().getAsJsonObject("error");
                         if (errorObject != null) {
                             String status = errorObject.get("status").getAsString();
                             String message = errorObject.get("message").getAsString();
@@ -52,11 +51,11 @@ public abstract class AbstractSearchCommand implements CommandExecutor {
                         } else
                             throw new CommandException("Unknown HTTP error occurred. Code %s".formatted(jsonResponse.response().code()));
                     }
-                    if (!jsonResponse.responseJson().has("items"))
+                    if (!jsonResponse.json().has("items"))
                         throw new CommandException("No results");
-                    size.setValue(jsonResponse.responseJson().getAsJsonArray("items").size());
+                    size.setValue(jsonResponse.json().getAsJsonArray("items").size());
                     if (size.getValue() == 0) throw new CommandException("No results");
-                    return jsonResponse.responseJson();
+                    return jsonResponse.json();
                 }));
         int index = ctx.useComponent(0, (id, old) -> switch (id) {
             case "prev" -> old - 1;

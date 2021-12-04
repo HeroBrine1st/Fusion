@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class JsonRequest {
-    public static record JsonResponse(JsonObject responseJson, Response response) {
+    public record JsonResponse<T>(T json, Response response) {
     }
 
     private JsonRequest() {
@@ -23,16 +23,22 @@ public class JsonRequest {
     private static final MediaType MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
     private static final OkHttpClient client = new OkHttpClient();
 
-    public static @NotNull CompletableFuture<JsonResponse> makeRequest(HttpUrl url) {
+    public static @NotNull CompletableFuture<JsonResponse<JsonObject>> makeRequest(HttpUrl url) {
         return makeRequest(url, null, "GET");
     }
 
-    public static @NotNull CompletableFuture<JsonResponse> makeRequest(HttpUrl url, @Nullable JsonObject data) {
+    public static @NotNull CompletableFuture<JsonResponse<JsonObject>> makeRequest(HttpUrl url, @Nullable JsonObject data) {
         return makeRequest(url, data, "POST");
     }
 
-    public static @NotNull CompletableFuture<JsonResponse> makeRequest(HttpUrl url, @Nullable JsonObject data, @NotNull String method) {
-        CompletableFuture<JsonResponse> completableFuture = new CompletableFuture<>();
+    public static @NotNull CompletableFuture<JsonResponse<JsonObject>> makeRequest(HttpUrl url, @Nullable JsonObject data, @NotNull String method) {
+        return makeRequest(url, data, method, JsonObject.class);
+    }
+
+
+    public static @NotNull <T> CompletableFuture<JsonResponse<T>> makeRequest(HttpUrl url, @Nullable JsonObject data,
+                                                                              @NotNull String method, Class<T> clazz) {
+        CompletableFuture<JsonResponse<T>> completableFuture = new CompletableFuture<>();
         Pools.CONNECTION_POOL.execute(() -> {
             Request.Builder builder = new Request.Builder()
                     .url(url)
@@ -58,14 +64,14 @@ public class JsonRequest {
                 completableFuture.completeExceptionally(e);
                 return;
             }
-            JsonObject json;
+            T json;
             try {
-                json = gson.fromJson(bodyString, JsonObject.class);
+                json = gson.fromJson(bodyString, clazz);
             } catch (JsonSyntaxException e) {
                 completableFuture.completeExceptionally(e);
                 return;
             }
-            completableFuture.complete(new JsonResponse(json, response));
+            completableFuture.complete(new JsonResponse<>(json, response));
         });
         return completableFuture;
     }

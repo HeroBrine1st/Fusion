@@ -61,13 +61,13 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                                 .addQueryParameter("group_id", groupId)
                                 .build()))
                 .thenApply(jsonResponse -> {
-                    if (!jsonResponse.response().isSuccessful() || jsonResponse.responseJson().has("error")) {
+                    if (!jsonResponse.response().isSuccessful() || jsonResponse.json().has("error")) {
                         logger.error("Error fetching group information");
                         logger.error("Id: " + groupId);
-                        logger.error(jsonResponse.responseJson().toString());
+                        logger.error(jsonResponse.json().toString());
                         throw new CommandException("Error fetching group information");
                     }
-                    return jsonResponse.responseJson();
+                    return jsonResponse.json();
                 })
                 .thenApplyAsync(json -> { // Check if already subscribed
                     JsonObject groupInfo = json.getAsJsonArray("response").get(0).getAsJsonObject();
@@ -111,13 +111,13 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                                         .setQueryParameter("owner_id", String.valueOf(-entity.getId()))
                                         .build())
                                 .thenApply(jsonResponse -> {
-                                    if (!jsonResponse.response().isSuccessful() || jsonResponse.responseJson().has("error")) {
+                                    if (!jsonResponse.response().isSuccessful() || jsonResponse.json().has("error")) {
                                         logger.error("Error fetching group information");
                                         logger.error("Id: " + groupId);
-                                        logger.error(jsonResponse.responseJson().toString());
+                                        logger.error(jsonResponse.json().toString());
                                         throw new CommandException("Error fetching group wall");
                                     }
-                                    return jsonResponse.responseJson();
+                                    return jsonResponse.json();
                                 }).thenApply(json -> {
                                     entity.setLastWallPostId(json
                                             .getAsJsonObject("response")
