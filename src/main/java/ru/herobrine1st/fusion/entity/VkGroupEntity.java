@@ -20,6 +20,9 @@ public class VkGroupEntity {
     @Column(nullable = false)
     private long lastWallPostId; // To avoid duplicates
 
+    @Column(nullable = false)
+    private String originalLink;
+
     @OneToMany(cascade = { CascadeType.ALL }, orphanRemoval = true, mappedBy = "group")
     private List<VkGroupSubscriberEntity> subscribers;
 
@@ -67,5 +70,13 @@ public class VkGroupEntity {
     public void removeSubscriber(VkGroupSubscriberEntity subscriber) {
         this.subscribers.remove(subscriber);
         subscriber.setGroup(null);
+    }
+
+    public String getOriginalLink() {
+        return originalLink;
+    }
+
+    public void setOriginalLink(String originalLink) {
+        this.originalLink = originalLink;
     }
 }

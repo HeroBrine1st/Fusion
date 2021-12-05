@@ -98,6 +98,7 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                             entity = new VkGroupEntity();
                             entity.setId(id);
                             entity.setLastWallPostId(-1);
+                            entity.setOriginalLink(url.toString());
                         }
                     }
                     entity.setName(groupInfo.get("name").getAsString());
@@ -162,7 +163,7 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                         .setEmbeds(new EmbedBuilder()
                                 .setColor(0x00FF00)
                                 .setAuthor(entity.getName(), "https://vk.com/club" + entity.getId(), entity.getAvatarUrl())
-                                .setDescription("Complete. This embed is example post.")
+                                .setDescription("Complete. This embed is an example post.")
                                 .build())
                         .build()).queue())
                 .whenComplete((v, throwable) -> {

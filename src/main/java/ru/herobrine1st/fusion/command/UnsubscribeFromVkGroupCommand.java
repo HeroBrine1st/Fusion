@@ -103,16 +103,15 @@ public class UnsubscribeFromVkGroupCommand implements CommandExecutor {
                                     .map(it -> SelectOption.of(
                                             ensureStringSize(it.getGroup().getName()),
                                             String.valueOf(it.getId())
-                                    ))
+                                    ).withDescription(it.getGroup().getOriginalLink()))
                                     .limit(25)
                                     .toList())
                             .setMaxValues(25)
-                            .setPlaceholder("Select groups to unsubscribe")
+                            .setPlaceholder("Select groups")
                             .build();
-                    return ctx.getHook().sendMessage(new MessageBuilder()
-                            .setContent("Select groups to unsubscribe")
-                            .setActionRows(ActionRow.of(menu))
-                            .build()).submit();
+                    return ctx.getHook().sendMessage("Select groups to unsubscribe from")
+                            .addActionRow(menu)
+                            .submit();
                 })
                 .thenCompose(ctx::waitForComponentInteraction)
                 .thenCompose(event -> event.deferEdit().submit().thenApply(unused -> event))
@@ -123,7 +122,7 @@ public class UnsubscribeFromVkGroupCommand implements CommandExecutor {
                 .thenApplyAsync(selectOptions -> {
                     try (Session session = Fusion.getSessionFactory().openSession()) {
                         Query query = session.createQuery("DELETE FROM VkGroupSubscriberEntity entity " +
-                                        "WHERE entity.channelId=:channelId AND entity.id IN :selection") // Validated by DBMS
+                                        "WHERE entity.channelId=:channelId AND entity.id IN :selection")
                                 .setParameter("channelId", Objects.requireNonNull(ctx.getEvent().getChannel()).getIdLong())
                                 .setParameterList("selection", selectOptions);
                         Transaction transaction = session.beginTransaction();
