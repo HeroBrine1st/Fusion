@@ -26,9 +26,11 @@ import kotlin.system.exitProcess
 object Fusion {
     @JvmStatic
     private val logger = LoggerFactory.getLogger("Fusion")
+
     @JvmStatic
     lateinit var sessionFactory: SessionFactory
         private set
+
     @JvmStatic
     lateinit var jda: JDA
         private set
@@ -106,15 +108,15 @@ object Fusion {
                         .setExecutor(UnsubscribeFromVkGroupCommand())
                         .addOptions(URLParserElement("group", "Link to group").setHost("vk.com").setRequired(false))
                         .setPermissionHandler(OwnerPermissionHandler())
-                        .build()
-                )
+                        .build())
                 .build()
         )
         commandManager.updateCommands().queue(null) { obj: Throwable -> obj.printStackTrace() }
         val startup = Instant.now()
         Pools.SCHEDULED_POOL.scheduleAtFixedRate({
             val duration = Instant.now() - startup
-            jda.presence.activity = Activity.playing("Uptime: %d:%02d:%02d".format(duration.toDaysPart(), duration.toHoursPart(), duration.toMinutesPart()))
+            jda.presence.activity = Activity.playing("Uptime: %d:%02d:%02d"
+                .format(duration.toDaysPart(), duration.toHoursPart(), duration.toMinutesPart()))
         }, 0, 1, TimeUnit.MINUTES)
         Runtime.getRuntime().addShutdownHook(Thread { jda.shutdown() })
     }

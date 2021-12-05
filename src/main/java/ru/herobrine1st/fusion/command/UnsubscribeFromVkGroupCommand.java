@@ -89,10 +89,12 @@ public class UnsubscribeFromVkGroupCommand implements CommandExecutor {
                     try (Session session = Fusion.getSessionFactory().openSession()) {
                         TypedQuery<VkGroupSubscriberEntity> query = session.createQuery(
                                         "SELECT entity FROM VkGroupSubscriberEntity entity " +
-                                                "WHERE entity.channelId=:channelId " +
-                                                "JOIN entity.group", VkGroupSubscriberEntity.class)
+                                                "JOIN entity.group " +
+                                                "WHERE entity.channelId=:channelId ", VkGroupSubscriberEntity.class)
                                 .setParameter("channelId", Objects.requireNonNull(ctx.getEvent().getChannel()).getIdLong());
-                        return query.getResultList();
+                        List<VkGroupSubscriberEntity> resultList = query.getResultList();
+                        if(resultList.size() == 0) throw new CommandException("No subscriptions in this channel");
+                        return resultList;
                     }
                 }, Pools.CONNECTION_POOL)
                 .thenCompose(list -> {
@@ -102,8 +104,8 @@ public class UnsubscribeFromVkGroupCommand implements CommandExecutor {
                                             ensureStringSize(it.getGroup().getName()),
                                             String.valueOf(it.getId())
                                     ))
-                                    .toList()
-                            )
+                                    .limit(25)
+                                    .toList())
                             .setMaxValues(25)
                             .setPlaceholder("Select groups to unsubscribe")
                             .build();
@@ -113,20 +115,32 @@ public class UnsubscribeFromVkGroupCommand implements CommandExecutor {
                             .build()).submit();
                 })
                 .thenCompose(ctx::waitForComponentInteraction)
+                .thenCompose(event -> event.deferEdit().submit().thenApply(unused -> event))
                 .thenApply(event -> {
                     if (!(event instanceof SelectionMenuEvent selectionMenuEvent)) throw new RuntimeException();
                     return selectionMenuEvent.getInteraction().getValues().stream().map(Long::parseLong).toList();
                 })
                 .thenApplyAsync(selectOptions -> {
                     try (Session session = Fusion.getSessionFactory().openSession()) {
-                        Query query = session.createQuery("DELETE FROM VkGroupSubscriberEntity entity" +
+                        Query query = session.createQuery("DELETE FROM VkGroupSubscriberEntity entity " +
                                         "WHERE entity.channelId=:channelId AND entity.id IN :selection") // Validated by DBMS
                                 .setParameter("channelId", Objects.requireNonNull(ctx.getEvent().getChannel()).getIdLong())
                                 .setParameterList("selection", selectOptions);
-                        return query.executeUpdate();
+                        Transaction transaction = session.beginTransaction();
+                        try {
+                            long count = query.executeUpdate();
+                            transaction.commit();
+                            return count;
+                        } catch (Exception e) {
+                            transaction.rollback();
+                            throw new RuntimeException(e);
+                        }
                     }
                 }, Pools.CONNECTION_POOL)
-                .thenCompose(count -> ctx.getHook().editOriginal("Unsubscribed from %d groups.".formatted(count)).submit());
+                .thenCompose(count -> ctx.getHook().editOriginal(new MessageBuilder()
+                                .setContent("Unsubscribed from %d groups.".formatted(count))
+                                .build())
+                        .submit());
     }
 
     @Override
@@ -136,11 +150,7 @@ public class UnsubscribeFromVkGroupCommand implements CommandExecutor {
         (url.isPresent() ? removeByLink(ctx, url.get()) : removeSelected(ctx))
                 .whenComplete((v, throwable) -> {
                     if (throwable != null) {
-                        if (throwable instanceof CompletionException && throwable.getCause() instanceof CommandException)
-                            ctx.getHook().sendMessage(throwable.getMessage()).queue();
-                        else
-                            ctx.getHook().sendMessage("Unknown exception occurred").queue();
-                        logger.error("Error executing SubscribeToVkGroupCommand", throwable);
+                        ctx.handleException(throwable);
                     }
                 });
     }

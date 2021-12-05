@@ -167,11 +167,7 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                         .build()).queue())
                 .whenComplete((v, throwable) -> {
                     if (throwable != null) {
-                        if (throwable instanceof CompletionException && throwable.getCause() instanceof CommandException)
-                            ctx.getHook().sendMessage(throwable.getMessage()).queue();
-                        else
-                            ctx.getHook().sendMessage("Unknown exception occurred").queue();
-                        logger.error("Error executing SubscribeToVkGroupCommand", throwable);
+                        ctx.handleException(throwable);
                     }
                 });
     }

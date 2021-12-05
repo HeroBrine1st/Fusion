@@ -7,8 +7,6 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import okhttp3.HttpUrl;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.herobrine1st.fusion.api.command.CommandContext;
 import ru.herobrine1st.fusion.api.command.CommandExecutor;
 import ru.herobrine1st.fusion.api.command.State;
@@ -17,10 +15,8 @@ import ru.herobrine1st.fusion.api.restaction.CompletableFutureAction;
 import ru.herobrine1st.fusion.net.JsonRequest;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 public abstract class AbstractSearchCommand implements CommandExecutor {
-    private final static Logger logger = LoggerFactory.getLogger(AbstractSearchCommand.class);
 
     protected abstract HttpUrl getUrl(CommandContext ctx);
 
@@ -77,10 +73,9 @@ public abstract class AbstractSearchCommand implements CommandExecutor {
                                 ))
                 )
                 .queue(ctx::submitComponents, throwable -> {
-                    if (throwable instanceof CompletionException && throwable.getCause() instanceof CommandException commandException)
-                        ctx.getHook().sendMessage(commandException.getMessage()).queue();
-                    else ctx.getHook().sendMessage("Unhandled error occurred").queue();
-                    logger.error("Error executing %s".formatted(getClass().getName()), throwable);
+                    if (throwable != null) {
+                        ctx.handleException(throwable);
+                    }
                 });
     }
 }
