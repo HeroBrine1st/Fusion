@@ -13,10 +13,7 @@ import ru.herobrine1st.fusion.api.command.GenericArguments
 import ru.herobrine1st.fusion.api.command.option.FusionCommand
 import ru.herobrine1st.fusion.api.command.option.FusionSubcommand
 import ru.herobrine1st.fusion.api.manager.CommandManager
-import ru.herobrine1st.fusion.command.ImageCommand
-import ru.herobrine1st.fusion.command.SubscribeToVkGroupCommand
-import ru.herobrine1st.fusion.command.UnsubscribeFromVkGroupCommand
-import ru.herobrine1st.fusion.command.YoutubeCommand
+import ru.herobrine1st.fusion.command.*
 import ru.herobrine1st.fusion.parser.URLParserElement
 import ru.herobrine1st.fusion.permission.OwnerPermissionHandler
 import ru.herobrine1st.fusion.tasks.VkGroupFetchTask
@@ -27,10 +24,13 @@ import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
 
 object Fusion {
-    @JvmStatic private val logger = LoggerFactory.getLogger("Fusion")
-    @JvmStatic lateinit var sessionFactory: SessionFactory
+    @JvmStatic
+    private val logger = LoggerFactory.getLogger("Fusion")
+    @JvmStatic
+    lateinit var sessionFactory: SessionFactory
         private set
-    @JvmStatic lateinit var jda: JDA
+    @JvmStatic
+    lateinit var jda: JDA
         private set
 
     @JvmStatic
@@ -95,16 +95,16 @@ object Fusion {
                 .build()
         )
         commandManager.registerCommand(
-            FusionCommand.withSubcommands("vkgroup", "Manage VK group subscriptions to channel")
+            FusionCommand.withSubcommands("vk", "VK social network related commands")
                 .addOptions(
                     FusionSubcommand.builder("subscribe", "Subscribe to VK group")
                         .setExecutor(SubscribeToVkGroupCommand())
                         .addOptions(URLParserElement("group", "Link to group").setHost("vk.com"))
                         .setPermissionHandler(OwnerPermissionHandler())
                         .build(),
-                    FusionSubcommand.builder("unsubscribe", "Subscribe from VK group")
+                    FusionSubcommand.builder("unsubscribe", "Unsubscribe from VK group")
                         .setExecutor(UnsubscribeFromVkGroupCommand())
-                        .addOptions(URLParserElement("group", "Link to group").setHost("vk.com"))
+                        .addOptions(URLParserElement("group", "Link to group").setHost("vk.com").setRequired(false))
                         .setPermissionHandler(OwnerPermissionHandler())
                         .build()
                 )

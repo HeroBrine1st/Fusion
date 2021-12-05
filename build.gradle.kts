@@ -32,6 +32,7 @@ dependencies {
     implementation("org.hibernate:hibernate-hikaricp:5.6.1.Final")
     implementation("mysql:mysql-connector-java:8.0.26")
     implementation("org.reflections:reflections:0.10.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
 }
 
 java {

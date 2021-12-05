@@ -51,8 +51,8 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
                                                 "WHERE entity.channelId=:channelId", Long.class)
                                 .setParameter("channelId", Objects.requireNonNull(ctx.getEvent().getChannel()).getIdLong());
                         long count = query.getSingleResult();
-                        if (count >= 100)
-                            throw new CommandException("This channel has reached 100 subscriptions limit");
+                        if (count >= 25)
+                            throw new CommandException("This channel has reached 25 subscriptions limit");
                     }
                     return null;
                 }, Pools.CONNECTION_POOL)
