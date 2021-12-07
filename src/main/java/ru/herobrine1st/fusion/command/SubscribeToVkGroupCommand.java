@@ -39,8 +39,7 @@ public class SubscribeToVkGroupCommand implements CommandExecutor {
         HttpUrl url = ctx.<HttpUrl>getArgument("group").orElseThrow();
         var matcher = pattern.matcher(url.toString());
         if (!matcher.matches()) {
-            ctx.getHook().sendMessage("URL is not leading to a group").queue();
-            return;
+            throw new CommandException("URL is not leading to a group");
         }
         String groupId = Objects.requireNonNullElse(matcher.group(2), matcher.group(1));
         new CompletableFuture<Void>()
