@@ -2,7 +2,6 @@ FROM gradle:7.2.0-jdk16 AS builder
 
 ENV GRADLE_OPTS "-Dorg.gradle.daemon=false"
 
-RUN mkdir /src/
 WORKDIR /src
 
 COPY settings.gradle.kts /src/
