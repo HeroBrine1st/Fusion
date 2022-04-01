@@ -4,124 +4,77 @@ import com.mysql.cj.jdbc.Driver
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
+import net.dv8tion.jda.api.requests.GatewayIntent
 import org.hibernate.SessionFactory
 import org.hibernate.cfg.Configuration
 import org.hibernate.cfg.Environment
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
-import ru.herobrine1st.fusion.api.command.GenericArguments
-import ru.herobrine1st.fusion.api.command.option.FusionCommand
-import ru.herobrine1st.fusion.api.command.option.FusionSubcommand
-import ru.herobrine1st.fusion.api.manager.CommandManager
-import ru.herobrine1st.fusion.command.*
-import ru.herobrine1st.fusion.parser.URLParserElement
-import ru.herobrine1st.fusion.permission.OwnerPermissionHandler
-import ru.herobrine1st.fusion.tasks.VkGroupFetchTask
+import ru.herobrine1st.fusion.listener.ButtonInteractionListener
+import ru.herobrine1st.fusion.listener.SlashCommandListener
+import ru.herobrine1st.fusion.util.minus
 import java.time.Instant
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.persistence.Entity
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
 
 object Fusion {
-    @JvmStatic
-    private val logger = LoggerFactory.getLogger("Fusion")
-
-    @JvmStatic
-    lateinit var sessionFactory: SessionFactory
-        private set
-
-    @JvmStatic
     lateinit var jda: JDA
         private set
+    lateinit var sessionFactory: SessionFactory
+        private set
+    private val logger = LoggerFactory.getLogger(Fusion::class.java)
 
     @JvmStatic
     fun main(args: Array<String>) {
         try {
-            jda = JDABuilder.createLight(Config.getDiscordToken())
+            jda = JDABuilder.createLight(Config.discordToken, EnumSet.noneOf(GatewayIntent::class.java))
+                .addEventListeners(SlashCommandListener, ButtonInteractionListener)
                 .build()
         } catch (e: LoginException) {
             logger.error("Invalid discord token", e)
-            exitProcess(-1)
+            exitProcess(2)
         }
+
         val configuration = Configuration()
-            .setProperty(Environment.URL, "jdbc:mysql://%s:%s@%s:%s/%s".format(
-                Config.getMysqlUsername(),
-                Config.getMysqlPassword(),
-                Config.getMysqlHost(),
-                Config.getMysqlPort(),
-                Config.getMysqlDatabase()))
+            .setProperty(
+                Environment.URL, "jdbc:mysql://%s:%s@%s:%s/%s".format(
+                    Config.mysqlUsername,
+                    Config.mysqlPassword,
+                    Config.mysqlHost,
+                    Config.mysqlPort,
+                    Config.mysqlDatabase
+                )
+            )
             .setProperty(Environment.DRIVER, Driver::class.java.canonicalName)
-            .setProperty(Environment.HBM2DDL_AUTO, "update")
+            .setProperty(Environment.HBM2DDL_AUTO, "validate")
         Reflections("ru.herobrine1st.fusion")
             .getTypesAnnotatedWith(Entity::class.java)
             .stream()
-            .peek { clazz: Class<*> -> logger.trace("Registering entity ${clazz.canonicalName} in hibernate") }
-            .forEach { annotatedClass: Class<*> -> configuration.addAnnotatedClass(annotatedClass) }
+            .peek { clazz: Class<*> -> logger.trace("Registering entity %s in hibernate".format(clazz.canonicalName)) }
+            .forEach { annotatedClass: Class<*>? -> configuration.addAnnotatedClass(annotatedClass) }
         try {
             sessionFactory = configuration.buildSessionFactory()
-        } catch (e: Throwable) {
-            e.printStackTrace()
-            exitProcess(-1)
+        } catch (t: Throwable) {
+            t.printStackTrace()
+            exitProcess(2)
         }
-        Pools.SCHEDULED_POOL.scheduleAtFixedRate(VkGroupFetchTask(), 1, 30, TimeUnit.MINUTES)
-        val commandManager = CommandManager.create(jda)
-        commandManager.registerListeners()
-        commandManager.registerCommand(
-            FusionCommand.withArguments("img", "Search images")
-                .addOptions(
-                    GenericArguments.string("query", "Search query"),
-                    GenericArguments.string("type", "File type").setRequired(false),
-                    GenericArguments.integer("index", "Image index", 0, 9).setRequired(false),
-                    GenericArguments.string("safe", "Whether to enable safe search")
-                        .addChoice("No", "off")
-                        .addChoice("Yes", "active")
-                        .setRequired(false)
-                )
-                .setExecutor(ImageCommand())
-                .build()
-        )
-        commandManager.registerCommand(
-            FusionCommand.withArguments("youtube", "Search youtube videos")
-                .addOptions(
-                    GenericArguments.string("query", "Search query"),
-                    GenericArguments.string("type", "Type of resource. Default: video")
-                        .addChoice("video", "video")
-                        .addChoice("playlist", "playlist")
-                        .addChoice("channel", "channel")
-                        .setRequired(false),
-                    GenericArguments.integer("index", "Video index", 0, 49).setRequired(false),
-                    GenericArguments.integer("max", "Maximum result count", 1, 50).setRequired(false)
-                )
-                .setExecutor(YoutubeCommand())
-                .build()
-        )
-        commandManager.registerCommand(
-            FusionCommand.withSubcommands("vk", "VK social network related commands")
-                .addOptions(
-                    FusionSubcommand.builder("subscribe", "Subscribe to VK group")
-                        .setExecutor(SubscribeToVkGroupCommand())
-                        .addOptions(URLParserElement("group", "Link to group").setHost("vk.com"))
-                        .setPermissionHandler(OwnerPermissionHandler())
-                        .build(),
-                    FusionSubcommand.builder("unsubscribe", "Unsubscribe from VK group")
-                        .setExecutor(UnsubscribeFromVkGroupCommand())
-                        .addOptions(URLParserElement("group", "Link to group").setHost("vk.com").setRequired(false))
-                        .setPermissionHandler(OwnerPermissionHandler())
-                        .build())
-                .build()
-        )
-        commandManager.updateCommands().queue(null) { obj: Throwable -> obj.printStackTrace() }
+//        (if (Config.testingGuildId != null) jda.getGuildById(Config.testingGuildId)
+//            ?.updateCommands() ?: throw RuntimeException("Invalid TESTING_GUILD_ID environment variable provided")
+//        else jda.updateCommands())
+//            .addCommands(ImgSearchCommand.commandData)
+//            .queue()
+
+//        Pools.SCHEDULED_POOL.scheduleAtFixedRate(VkGroupFetchTask(), 1, 30, TimeUnit.MINUTES)
         val startup = Instant.now()
         Pools.SCHEDULED_POOL.scheduleAtFixedRate({
-            val duration = Instant.now() - startup
-            jda.presence.activity = Activity.playing("Uptime: %d:%02d:%02d"
-                .format(duration.toDaysPart(), duration.toHoursPart(), duration.toMinutesPart()))
+            jda.presence.activity = with(Instant.now() - startup) {
+                Activity.playing("Uptime: %d:%02d:%02d".format(toDaysPart(), toHoursPart(), toMinutesPart()))
+            }
         }, 0, 1, TimeUnit.MINUTES)
         Runtime.getRuntime().addShutdownHook(Thread { jda.shutdown() })
-    }
-
-    init {
-        System.setProperty("org.jboss.logging.provider", "slf4j")
+        logger.info("Started")
     }
 }

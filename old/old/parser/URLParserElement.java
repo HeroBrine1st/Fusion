@@ -1,4 +1,4 @@
-package ru.herobrine1st.fusion.parser;
+package ru.herobrine1st.fusion.old.parser;
 
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;

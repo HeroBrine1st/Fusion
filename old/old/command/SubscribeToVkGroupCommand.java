@@ -1,4 +1,4 @@
-package ru.herobrine1st.fusion.command;
+package ru.herobrine1st.fusion.old.command;
 
 import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -21,12 +21,8 @@ import ru.herobrine1st.fusion.util.VkApiUtil;
 
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.regex.Pattern;
 
 public class SubscribeToVkGroupCommand implements CommandExecutor {

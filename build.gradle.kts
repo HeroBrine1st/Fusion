@@ -1,9 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+@Suppress("SpellCheckingInspection")
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.0"
+    kotlin("jvm") version "1.6.10"
     application
-    kotlin("jvm") version "1.5.10"
 }
 
 group = "ru.herobrine1st.fusion"
@@ -15,24 +16,45 @@ project.setProperty("mainClassName", mainClassName)
 repositories {
     mavenCentral()
     maven(url = "https://m2.dv8tion.net/releases")
-    maven(url = "https://jitpack.io")
+    maven("https://jitpack.io/")
 }
 
 application {
     mainClass.set(this@Build_gradle.mainClassName)
 }
-
+@Suppress("SpellCheckingInspection")
 dependencies {
-    implementation("net.dv8tion:JDA:4.4.0_351")
-    implementation("com.github.HeroBrine1st:Fusion-framework:master-SNAPSHOT")
-    implementation("com.google.code.gson:gson:2.8.9")
-    implementation("com.squareup.okhttp3:okhttp:4.9.3")
-    implementation("org.slf4j:slf4j-simple:1.7.32")
-    implementation("org.hibernate:hibernate-core:5.6.1.Final")
-    implementation("org.hibernate:hibernate-hikaricp:5.6.1.Final")
+    // Kotlin
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+
+    // JDA
+    val jdaVersion = "5.0.0-alpha.9"
+    implementation("net.dv8tion:JDA:$jdaVersion")
+    implementation("com.github.minndevelopment:jda-ktx:9f01b74f4874b765feb1a33a694ee76d755d08fe")
+
+    // slf4j
+    val slf4jVersion = "1.7.36"
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
+    implementation("org.slf4j:log4j-over-slf4j:$slf4jVersion")
+
+
+    // Hibernate ORM
+    val hibernateVersion = "5.6.1.Final"
+    implementation("org.hibernate:hibernate-core:$hibernateVersion")
+    implementation("org.hibernate:hibernate-hikaricp:$hibernateVersion")
     implementation("mysql:mysql-connector-java:8.0.26")
+
+    // Jackson
+    val jacksonVersion = "2.13.1"
+    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+
+    // Other libraries
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("org.reflections:reflections:0.10.2")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
+    implementation("com.google.guava:guava:31.1-jre")
 }
 
 java {

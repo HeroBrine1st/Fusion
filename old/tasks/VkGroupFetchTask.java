@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import ru.herobrine1st.fusion.Fusion;
 import ru.herobrine1st.fusion.entity.VkGroupEntity;
 import ru.herobrine1st.fusion.entity.VkGroupSubscriberEntity;
-import ru.herobrine1st.fusion.net.JsonRequest;
 import ru.herobrine1st.fusion.util.ModifiedEmbedBuilder;
 import ru.herobrine1st.fusion.util.VkApiUtil;
 

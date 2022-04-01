@@ -1,10 +1,9 @@
-package ru.herobrine1st.fusion.command;
+package ru.herobrine1st.fusion.old.command;
 
 import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import okhttp3.HttpUrl;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.regex.Pattern;
 
 public class UnsubscribeFromVkGroupCommand implements CommandExecutor {

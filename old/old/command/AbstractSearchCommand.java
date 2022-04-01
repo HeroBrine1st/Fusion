@@ -1,4 +1,4 @@
-package ru.herobrine1st.fusion.command;
+package ru.herobrine1st.fusion.old.command;
 
 import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.entities.Message;
