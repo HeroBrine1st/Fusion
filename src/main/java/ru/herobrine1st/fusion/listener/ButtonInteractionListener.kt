@@ -21,8 +21,8 @@ object ButtonInteractionListener : EventListener {
 
     // Maybe wrong semantics, just googled about it
     private val interactionCache: Cache<Long, InteractionFuture> = CacheBuilder.newBuilder()
-        .apply { Config.maxComponentInteractionAwaits?.let { maximumSize(it) } }
-        .expireAfterWrite(Duration.ofMinutes(15))
+        .apply { Config.maxComponentInteractionWaits?.let { maximumSize(it) } }
+        .expireAfterWrite(Duration.ofMinutes(Config.maxComponentInteractionWaitTimeMinutes ?: 15))
         .removalListener { it: RemovalNotification<Long, InteractionFuture> ->
             logger.trace("Key ${it.value} removed from interaction cache")
             it.value?.cancel(true)

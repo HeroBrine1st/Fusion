@@ -13,6 +13,7 @@ object Config {
     val vkServiceToken: String = System.getenv("VK_SERVICE_TOKEN")!!
     val ownerId: String = System.getenv("OWNER_ID")!!
     val testingGuildId: Long? = System.getenv("TESTING_GUILD_ID")?.toLong()
-    val maxComponentInteractionAwaits: Long? = System.getenv("MAX_COMPONENT_INTERACTION_AWAITS")?.toLong()
+    val maxComponentInteractionWaits: Long? = System.getenv("MAX_COMPONENT_INTERACTION_WAITS")?.toLong()
+    val maxComponentInteractionWaitTimeMinutes: Long? = System.getenv("MAX_COMPONENT_INTERACTION_AWAIT_TIME_SECONDS")?.toLong()
     const val vkAPIVersion: String = "5.124"
 }
