@@ -55,6 +55,10 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("org.reflections:reflections:0.10.2")
     implementation("com.google.guava:guava:31.1-jre")
+
+    // Testing
+    testImplementation(platform("org.junit:junit-bom:5.8.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
 java {
@@ -79,5 +83,12 @@ tasks {
     }
     named<ShadowJar>("shadowJar") {
         archiveClassifier.set("full")
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
     }
 }

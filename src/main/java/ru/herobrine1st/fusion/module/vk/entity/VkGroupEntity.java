@@ -1,4 +1,4 @@
-package ru.herobrine1st.fusion.entity;
+package ru.herobrine1st.fusion.module.vk.entity;
 
 
 import javax.persistence.*;

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import ru.herobrine1st.fusion.command.ICommand
 import ru.herobrine1st.fusion.module.googlesearch.command.ImgSearchCommand
 import ru.herobrine1st.fusion.module.googlesearch.command.YoutubeSearchCommand
+import ru.herobrine1st.fusion.module.vk.command.VkCommand
 
 object SlashCommandListener : EventListener {
     private val logger = LoggerFactory.getLogger(SlashCommandListener::class.java)
@@ -19,6 +20,7 @@ object SlashCommandListener : EventListener {
         val command: ICommand = when (event.name) {
             ImgSearchCommand.commandData.name -> ImgSearchCommand
             YoutubeSearchCommand.commandData.name -> YoutubeSearchCommand
+            VkCommand.commandData.name -> VkCommand
             else -> {
                 logger.warn("Invalid command name (${event.name}) received. Forgot to update commands?")
                 return

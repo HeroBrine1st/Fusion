@@ -13,6 +13,9 @@ import ru.herobrine1st.fusion.module.googlesearch.command.ImgSearchCommand
 import ru.herobrine1st.fusion.module.googlesearch.command.YoutubeSearchCommand
 import ru.herobrine1st.fusion.listener.ButtonInteractionListener
 import ru.herobrine1st.fusion.listener.SlashCommandListener
+import ru.herobrine1st.fusion.module.vk.command.VkCommand
+import ru.herobrine1st.fusion.module.vk.entity.VkGroupEntity
+import ru.herobrine1st.fusion.module.vk.entity.VkGroupSubscriberEntity
 import ru.herobrine1st.fusion.util.minus
 import java.time.Instant
 import java.util.*
@@ -46,8 +49,14 @@ fun main(args: Array<String>) {
         (if (Config.testingGuildId != null) jda.getGuildById(Config.testingGuildId)
             ?.updateCommands() ?: exitWithMessage("Invalid TESTING_GUILD_ID environment variable provided")
         else jda.updateCommands())
-            .addCommands(ImgSearchCommand.commandData, YoutubeSearchCommand.commandData)
-            .queue()
+            .addCommands(
+                // googlesearch
+                ImgSearchCommand.commandData,
+                YoutubeSearchCommand.commandData,
+                // vk
+                VkCommand.commandData
+            )
+            .complete()
         if ("no-exit" !in flags) exitProcess(0)
     }
 
@@ -64,6 +73,8 @@ fun main(args: Array<String>) {
         )
         .setProperty(Environment.DRIVER, Driver::class.java.canonicalName)
         .setProperty(Environment.HBM2DDL_AUTO, "validate")
+        .addAnnotatedClass(VkGroupEntity::class.java)
+        .addAnnotatedClass(VkGroupSubscriberEntity::class.java)
 //    Reflections("ru.herobrine1st.fusion")
 //        .getTypesAnnotatedWith(Entity::class.java)
 //        .stream()

@@ -61,7 +61,7 @@ object YoutubeSearchCommand : AbstractSearchCommand() {
 
     override val commandData: SlashCommandData
         get() = Commands.slash("youtube", "Search youtube")
-            .addOption(OptionType.STRING, "query", "Search query")
+            .addOption(OptionType.STRING, "query", "Search query", true)
             .addOptions(
                 OptionData(OptionType.STRING, "type", "Type of resource. Default: video", false)
                     .addChoices("video" to "video", "playlist" to "playlist", "channel" to "channel"),
