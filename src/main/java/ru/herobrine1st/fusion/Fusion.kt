@@ -1,27 +1,26 @@
 package ru.herobrine1st.fusion
 
-import com.mysql.cj.jdbc.Driver
+import dev.minn.jda.ktx.CoroutineEventManager
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.hibernate.SessionFactory
-import org.hibernate.cfg.Configuration
-import org.hibernate.cfg.Environment
 import org.slf4j.LoggerFactory
-import ru.herobrine1st.fusion.module.googlesearch.command.ImgSearchCommand
-import ru.herobrine1st.fusion.module.googlesearch.command.YoutubeSearchCommand
 import ru.herobrine1st.fusion.listener.ButtonInteractionListener
 import ru.herobrine1st.fusion.listener.SlashCommandListener
+import ru.herobrine1st.fusion.module.googlesearch.command.ImgSearchCommand
+import ru.herobrine1st.fusion.module.googlesearch.command.YoutubeSearchCommand
 import ru.herobrine1st.fusion.module.vk.command.VkCommand
-import ru.herobrine1st.fusion.module.vk.entity.VkGroupEntity
-import ru.herobrine1st.fusion.module.vk.entity.VkGroupSubscriberEntity
+import ru.herobrine1st.fusion.module.vk.task.registerVkTask
+import ru.herobrine1st.fusion.util.constructHibernateConfiguration
 import ru.herobrine1st.fusion.util.minus
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
+
 
 lateinit var jda: JDA
     private set
@@ -32,7 +31,7 @@ private val logger = LoggerFactory.getLogger("Fusion")
 fun main(args: Array<String>) {
     try {
         jda = JDABuilder.createLight(Config.discordToken, EnumSet.noneOf(GatewayIntent::class.java))
-            .addEventListeners(SlashCommandListener, ButtonInteractionListener)
+            .setEventManager(CoroutineEventManager())
             .build()
     } catch (e: LoginException) {
         exitWithMessage("Invalid discord token", e)
@@ -46,46 +45,18 @@ fun main(args: Array<String>) {
         // else if (it.startsWith("-")) flags.addAll(it.substring(2).toCharArray().map { it1 -> it1.toString() })
     }
     if ("update-commands" in flags) {
-        (if (Config.testingGuildId != null) jda.getGuildById(Config.testingGuildId)
-            ?.updateCommands() ?: exitWithMessage("Invalid TESTING_GUILD_ID environment variable provided")
-        else jda.updateCommands())
-            .addCommands(
-                // googlesearch
-                ImgSearchCommand.commandData,
-                YoutubeSearchCommand.commandData,
-                // vk
-                VkCommand.commandData
-            )
-            .complete()
+        updateCommands()
         if ("no-exit" !in flags) exitProcess(0)
     }
 
-    val configuration = Configuration()
-        .setProperty(
-            Environment.URL,
-            "jdbc:mysql://%s:%s@%s:%s/%s".format(
-                Config.mysqlUsername,
-                Config.mysqlPassword,
-                Config.mysqlHost,
-                Config.mysqlPort,
-                Config.mysqlDatabase
-            )
-        )
-        .setProperty(Environment.DRIVER, Driver::class.java.canonicalName)
-        .setProperty(Environment.HBM2DDL_AUTO, "validate")
-        .addAnnotatedClass(VkGroupEntity::class.java)
-        .addAnnotatedClass(VkGroupSubscriberEntity::class.java)
-//    Reflections("ru.herobrine1st.fusion")
-//        .getTypesAnnotatedWith(Entity::class.java)
-//        .stream()
-//        .peek { clazz: Class<*> -> logger.trace("Registering entity %s in hibernate".format(clazz.canonicalName)) }
-//        .forEach { annotatedClass: Class<*>? -> configuration.addAnnotatedClass(annotatedClass) }
     try {
-        sessionFactory = configuration.buildSessionFactory()
+        sessionFactory = constructHibernateConfiguration().buildSessionFactory()
     } catch (t: Throwable) {
         t.printStackTrace()
         exitProcess(2)
     }
+    registerVkTask()
+    jda.addEventListener(SlashCommandListener, ButtonInteractionListener)
 
 //        Pools.SCHEDULED_POOL.scheduleAtFixedRate(VkGroupFetchTask(), 1, 30, TimeUnit.MINUTES)
     val startup = Instant.now()
@@ -100,4 +71,18 @@ fun main(args: Array<String>) {
 fun exitWithMessage(msg: String, throwable: Throwable? = null, exitCode: Int = 2): Nothing {
     logger.error(msg, throwable)
     exitProcess(exitCode)
+}
+
+fun updateCommands() {
+    (if (Config.testingGuildId != null) jda.getGuildById(Config.testingGuildId)
+        ?.updateCommands() ?: exitWithMessage("Invalid TESTING_GUILD_ID environment variable provided")
+    else jda.updateCommands())
+        .addCommands(
+            // googlesearch
+            ImgSearchCommand.commandData,
+            YoutubeSearchCommand.commandData,
+            // vk
+            VkCommand.commandData
+        )
+        .complete()
 }

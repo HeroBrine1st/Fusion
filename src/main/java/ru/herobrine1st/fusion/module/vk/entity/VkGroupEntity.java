@@ -1,7 +1,9 @@
 package ru.herobrine1st.fusion.module.vk.entity;
 
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import org.hibernate.annotations.NaturalId;
+
 import java.util.List;
 
 @Entity
@@ -9,7 +11,11 @@ import java.util.List;
 public class VkGroupEntity {
     @Id
     @Column(nullable = false)
-    private long id; // id directly from VK API
+    private long id;
+
+    @NaturalId
+    @Column(nullable = false)
+    private long groupId; // id directly from VK API
 
     @Column(nullable = false)
     private String name;
@@ -78,5 +84,13 @@ public class VkGroupEntity {
 
     public void setOriginalLink(String originalLink) {
         this.originalLink = originalLink;
+    }
+
+    public long getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(long groupId) {
+        this.groupId = groupId;
     }
 }

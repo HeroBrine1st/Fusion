@@ -16,7 +16,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.slf4j.LoggerFactory
 import ru.herobrine1st.fusion.command.ICommand
-import ru.herobrine1st.fusion.listener.awaitForInteraction
+import ru.herobrine1st.fusion.listener.awaitInteraction
 import ru.herobrine1st.fusion.util.objectMapper
 import java.io.IOException
 
@@ -58,18 +58,19 @@ abstract class AbstractSearchCommand : ICommand {
             } else {
                 event.hook.sendMessage("Unknown HTTP error occurred. Code: ${response.code}").await()
             }
+            return
         }
         val items = objectNode["items"]
         if (items.isEmpty) event.reply("No results")
         index = index.coerceIn(0 until items.size())
         var message = updateMessage(event, items, index)
         while (true) {
-            val buttonInteractionEvent = message.awaitForInteraction()
+            val buttonInteractionEvent = message.awaitInteraction()
             if (buttonInteractionEvent.user.idLong != event.user.idLong) continue
             buttonInteractionEvent.deferEdit().await()
-            assert(buttonInteractionEvent is ButtonInteractionEvent) {
-                "Expected ButtonInteractionEvent, got ${buttonInteractionEvent::class.simpleName}"
-            }
+            if (buttonInteractionEvent !is ButtonInteractionEvent)
+                throw RuntimeException("Expected ButtonInteractionEvent, got ${buttonInteractionEvent::class.simpleName}")
+
             when (buttonInteractionEvent.componentId) {
                 "first" -> index = 0
                 "prev" -> index -= 1

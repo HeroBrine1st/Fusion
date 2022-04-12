@@ -40,7 +40,7 @@ dependencies {
 
 
     // Hibernate ORM
-    val hibernateVersion = "5.6.1.Final"
+    val hibernateVersion = "6.0.0.Final"
     implementation("org.hibernate:hibernate-core:$hibernateVersion")
     implementation("org.hibernate:hibernate-hikaricp:$hibernateVersion")
     implementation("mysql:mysql-connector-java:8.0.26")
@@ -67,7 +67,7 @@ java {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "16"
+        jvmTarget = "17"
     }
 }
 

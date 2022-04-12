@@ -1,20 +1,17 @@
 package ru.herobrine1st.fusion.listener
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import dev.minn.jda.ktx.CoroutineEventListener
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.hooks.EventListener
 import org.slf4j.LoggerFactory
 import ru.herobrine1st.fusion.command.ICommand
 import ru.herobrine1st.fusion.module.googlesearch.command.ImgSearchCommand
 import ru.herobrine1st.fusion.module.googlesearch.command.YoutubeSearchCommand
 import ru.herobrine1st.fusion.module.vk.command.VkCommand
 
-object SlashCommandListener : EventListener {
+object SlashCommandListener : CoroutineEventListener {
     private val logger = LoggerFactory.getLogger(SlashCommandListener::class.java)
-    override fun onEvent(event: GenericEvent) {
+    override suspend fun onEvent(event: GenericEvent) {
         if (event !is SlashCommandInteractionEvent) return
 
         val command: ICommand = when (event.name) {
@@ -27,12 +24,11 @@ object SlashCommandListener : EventListener {
             }
         }
 
-        CoroutineScope(Dispatchers.Default).launch {
-            try {
-                command.execute(event)
-            } catch (t: Throwable) {
-                logger.error("An exception occurred while executing command ${event.commandPath}", t)
-            }
+        try {
+            command.execute(event)
+        } catch (e: Exception) {
+            // TAG USER_INPUT_IN_LOGS (remember log4sh?)
+            logger.error("An exception occurred while executing command \"${event.commandString}\"", e)
         }
     }
 }

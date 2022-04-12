@@ -24,13 +24,15 @@ data class Post(
     val comments: Comments,
     val likes: Likes,
     val reposts: Reposts,
-    val views: Views,
+    @JsonProperty(required = false) // Вы идиоты?
+    val views: Views?,
     val postType: PostType,
-    val attachments: List<Attachment>,
+    @JsonProperty(required = false)
+    val attachments: List<Attachment> = emptyList(),
     @JsonProperty(required = false)
     val signerId: Int = -1,
     @JsonProperty(required = false)
-    val copy_history: List<Post> = emptyList(),
+    val copyHistory: List<Post> = emptyList(),
     @JsonProperty(required = false)
     val isPinned: Boolean = false,
     @JsonProperty(required = false)
@@ -53,7 +55,7 @@ enum class PostType {
     val apiName = name.lowercase()
 }
 
-@JsonIgnoreProperties("user_reposted")
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Reposts(
     val count: Int
 )
@@ -63,6 +65,7 @@ data class Likes(
     val count: Int,
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Comments(
     val count: Int,
     @JsonProperty(required = false)

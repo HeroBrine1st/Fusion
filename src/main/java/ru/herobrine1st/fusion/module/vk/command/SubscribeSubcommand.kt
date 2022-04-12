@@ -1,13 +1,14 @@
 package ru.herobrine1st.fusion.module.vk.command
 
 import dev.minn.jda.ktx.await
+import jakarta.persistence.NoResultException
+import jakarta.persistence.TypedQuery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.hibernate.Transaction
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import ru.herobrine1st.fusion.module.vk.entity.VkGroupEntity
 import ru.herobrine1st.fusion.module.vk.entity.VkGroupSubscriberEntity
@@ -15,9 +16,8 @@ import ru.herobrine1st.fusion.module.vk.exceptions.VkApiException
 import ru.herobrine1st.fusion.module.vk.util.VkApiUtil
 import ru.herobrine1st.fusion.sessionFactory
 import java.util.regex.Pattern
-import javax.persistence.NoResultException
-import javax.persistence.TypedQuery
 
+private val logger = LoggerFactory.getLogger(SubscribeSubcommand::class.java)
 
 object SubscribeSubcommand {
     const val URL_ARGUMENT = "url"
@@ -56,12 +56,6 @@ object SubscribeSubcommand {
 
         val group = try {
             VkApiUtil.getGroupById(matcher.group(2) ?: matcher.group(1)!!)
-                .also {
-                    if (it.isClosed) {
-                        event.hook.sendMessage("Group is closed")
-                        return@execute
-                    }
-                }
         } catch (e: VkApiException) {
             if(e.code == 100) {
                 event.hook.sendMessage("No such group").await()
@@ -70,28 +64,35 @@ object SubscribeSubcommand {
                 throw e
             }
         }
+        if (group.isClosed) {
+            event.hook.sendMessage("Group is closed").await()
+            return
+        }
         val id = group.id
-        val entity: VkGroupEntity
-        sessionFactory.openSession().use { session ->
-            val query: TypedQuery<VkGroupEntity> = session.createQuery(
-                "SELECT entity FROM VkGroupEntity entity " +
-                        "WHERE entity.id=:id", VkGroupEntity::class.java
-            )
-                .setParameter("id", id.toLong())
-            entity = try {
-                query.singleResult
-            } catch (exception: NoResultException) {
-                VkGroupEntity().apply {
-                    this.id = id.toLong()
-                    lastWallPostId = -1L
-                    originalLink = url
+        val entity: VkGroupEntity = withContext(Dispatchers.IO) {
+            sessionFactory.openSession().use { session ->
+                val query: TypedQuery<VkGroupEntity> = session.createQuery(
+                    "SELECT entity FROM VkGroupEntity entity " +
+                            "WHERE entity.groupId=:id", VkGroupEntity::class.java
+                )
+                    .setParameter("id", id.toLong())
+                try {
+                    query.singleResult
+                } catch (exception: NoResultException) {
+                    VkGroupEntity().apply {
+                        this.groupId = id.toLong()
+                        lastWallPostId = -1L
+                        originalLink = url
+                    }
                 }
             }
         }
         entity.name = group.name
         entity.avatarUrl = group.photo_200
         if (entity.lastWallPostId == -1L) {
-            entity.lastWallPostId = VkApiUtil.getWall(-entity.id).filterNot { it.isPinned }.first().id.toLong()
+            val firstPost = VkApiUtil.getWall(-entity.groupId).filterNot { it.isPinned }.first()
+            entity.lastWallPostId = firstPost.id.toLong()
+            logger.debug("lastWallPostId: ${entity.lastWallPostId}")
         }
 
         withContext(Dispatchers.IO) {
@@ -104,8 +105,8 @@ object SubscribeSubcommand {
             sessionFactory.openSession().use { session ->
                 val transaction: Transaction = session.beginTransaction()
                 try {
-                    session.saveOrUpdate(entity)
-                    session.save(vkGroupSubscriber)
+                    session.merge(entity)
+                    session.persist(vkGroupSubscriber)
                     transaction.commit()
                 } catch (e: Exception) {
                     transaction.rollback()

@@ -1,6 +1,6 @@
 package ru.herobrine1st.fusion.module.vk.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "vk_group_subscribers")

@@ -26,3 +26,8 @@ fun OptionData.addChoices(vararg choices: Pair<String, String>): OptionData {
 //    this.addChoices(choices.map { Command.Choice(it.first, it.second) })
 //    return this
 //}
+
+fun String.abbreviate(limit: Int, ellipsis: String = "…"): String {
+    return if(length <= limit) this
+    else substring(0, limit - ellipsis.length) + ellipsis
+}

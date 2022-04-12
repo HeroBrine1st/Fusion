@@ -49,7 +49,7 @@ object ButtonInteractionListener : EventListener {
     }
 }
 
-suspend fun Message.awaitForInteraction(): GenericComponentInteractionCreateEvent {
+suspend fun Message.awaitInteraction(): GenericComponentInteractionCreateEvent {
     if(actionRows.isEmpty() || actionRows.any { it.isEmpty }) throw RuntimeException("No action rows in message")
     return ButtonInteractionListener.createInteractionFuture(idLong).await()
 }
