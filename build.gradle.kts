@@ -9,7 +9,7 @@ plugins {
 
 group = "ru.herobrine1st.fusion"
 version = "1.0-SNAPSHOT"
-val mainClassName = "ru.herobrine1st.fusion.Fusion"
+val mainClassName = "ru.herobrine1st.fusion.FusionKt"
 
 project.setProperty("mainClassName", mainClassName)
 
@@ -62,12 +62,13 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_16
+    sourceCompatibility = JavaVersion.VERSION_17
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs = freeCompilerArgs + "-Xjvm-default=all"
     }
 }
 

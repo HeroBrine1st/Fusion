@@ -58,7 +58,6 @@ fun main(args: Array<String>) {
     registerVkTask()
     jda.addEventListener(SlashCommandListener, ButtonInteractionListener)
 
-//        Pools.SCHEDULED_POOL.scheduleAtFixedRate(VkGroupFetchTask(), 1, 30, TimeUnit.MINUTES)
     val startup = Instant.now()
     Pools.SCHEDULED_POOL.scheduleAtFixedRate({
         jda.presence.activity = with(Instant.now() - startup) {
@@ -85,4 +84,5 @@ fun updateCommands() {
             VkCommand.commandData
         )
         .complete()
+    logger.info("Updated commands " + if(Config.testingGuildId != null) "in guild ${Config.testingGuildId}" else "globally")
 }

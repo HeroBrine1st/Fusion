@@ -21,9 +21,12 @@ data class Post(
     val replyPostId: Int = -1,
     @JsonProperty(required = false)
     val friendsOnly: Boolean = false,
-    val comments: Comments,
-    val likes: Likes,
-    val reposts: Reposts,
+    @JsonProperty(required = false) // Вы идиоты?
+    val comments: Comments?,
+    @JsonProperty(required = false) // Вы идиоты?
+    val likes: Likes?,
+    @JsonProperty(required = false) // Вы идиоты?
+    val reposts: Reposts?,
     @JsonProperty(required = false) // Вы идиоты?
     val views: Views?,
     val postType: PostType,

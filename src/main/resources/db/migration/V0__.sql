@@ -1,6 +1,4 @@
-CREATE TABLE hibernate_sequence (
-  next_val BIGINT DEFAULT NULL NULL
-);
+CREATE SEQUENCE hibernate_sequence INCREMENT BY 1 START WITH 1;
 
 CREATE TABLE vk_group_subscribers (
   id BIGINT NOT NULL,
@@ -11,6 +9,10 @@ CREATE TABLE vk_group_subscribers (
 );
 
 CREATE TABLE vk_group_subscribers_SEQ (
+  next_val BIGINT DEFAULT NULL NULL
+);
+
+CREATE TABLE vk_groups_SEQ (
   next_val BIGINT DEFAULT NULL NULL
 );
 

@@ -11,6 +11,7 @@ import java.util.List;
 public class VkGroupEntity {
     @Id
     @Column(nullable = false)
+    @GeneratedValue(strategy=GenerationType.AUTO)
     private long id;
 
     @NaturalId

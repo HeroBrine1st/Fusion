@@ -22,7 +22,7 @@ fun constructHibernateConfiguration(): Configuration {
             )
         )
         .setProperty(Environment.DRIVER, Driver::class.java.canonicalName)
-        .setProperty(Environment.HBM2DDL_AUTO, "update") // TODO somehow export sql files and then set to "validate"
+        .setProperty(Environment.HBM2DDL_AUTO, if(Config.debug) "update" else "validate")
         // vk
         .addAnnotatedClass(VkGroupEntity::class.java)
         .addAnnotatedClass(VkGroupSubscriberEntity::class.java)

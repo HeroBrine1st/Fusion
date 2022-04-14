@@ -15,5 +15,6 @@ object Config {
     val testingGuildId: Long? = System.getenv("TESTING_GUILD_ID")?.toLong()
     val maxComponentInteractionWaits: Long? = System.getenv("MAX_COMPONENT_INTERACTION_WAITS")?.toLong()
     val maxComponentInteractionWaitTimeMinutes: Long? = System.getenv("MAX_COMPONENT_INTERACTION_AWAIT_TIME_SECONDS")?.toLong()
+    val debug: Boolean = System.getenv("DEBUG") != null
     const val vkAPIVersion: String = "5.124"
 }

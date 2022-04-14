@@ -27,7 +27,7 @@ abstract class AbstractSearchCommand : ICommand {
     private val okHttpClient = OkHttpClient()
 
     override suspend fun execute(event: SlashCommandInteractionEvent) {
-        event.deferReply().queue()
+        event.deferReply().await()
         var index = event.getOption("index", 0) { it.asInt }
         val (response, objectNode) = try {
             withContext(Dispatchers.IO) {
