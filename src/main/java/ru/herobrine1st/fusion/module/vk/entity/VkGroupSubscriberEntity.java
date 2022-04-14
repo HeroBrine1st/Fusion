@@ -20,7 +20,7 @@ public class VkGroupSubscriberEntity {
     private long channelId;
 
     @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", nullable = false)
     private VkGroupEntity group;
 
     public long getId() {
