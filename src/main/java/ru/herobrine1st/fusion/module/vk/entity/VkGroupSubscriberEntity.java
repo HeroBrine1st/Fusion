@@ -9,7 +9,7 @@ public class VkGroupSubscriberEntity {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private long id;
 
@@ -19,7 +19,7 @@ public class VkGroupSubscriberEntity {
     @Column(nullable = false)
     private long channelId;
 
-    @ManyToOne
+    @ManyToOne(cascade = { CascadeType.ALL })
     @JoinColumn(name = "group_id", nullable = false)
     private VkGroupEntity group;
 

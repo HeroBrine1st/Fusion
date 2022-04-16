@@ -11,12 +11,12 @@ import java.util.List;
 public class VkGroupEntity {
     @Id
     @Column(nullable = false)
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private long id;
 
     @NaturalId
     @Column(nullable = false)
-    private long groupId; // id directly from VK API
+    private long groupId;
 
     @Column(nullable = false)
     private String name;
