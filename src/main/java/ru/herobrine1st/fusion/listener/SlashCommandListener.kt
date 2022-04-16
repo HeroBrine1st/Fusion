@@ -1,6 +1,8 @@
 package ru.herobrine1st.fusion.listener
 
 import dev.minn.jda.ktx.CoroutineEventListener
+import dev.minn.jda.ktx.await
+import dev.minn.jda.ktx.messages.send
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.utils.TimeUtil
@@ -41,6 +43,8 @@ object SlashCommandListener : CoroutineEventListener {
             // TAG USER_INPUT_IN_LOGS (remember log4sh?)
             logger.error("An exception occurred while executing command \"${event.commandString}\"", e)
             logger.error("Execution time: ${end - start} ms")
+            if(event.isAcknowledged) event.hook.send(content = "An error occurred while executing this command").await()
+            else event.reply("An error occurred while executing this command").setEphemeral(true).await()
         }
     }
 }
