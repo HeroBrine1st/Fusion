@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import okhttp3.HttpUrl
@@ -63,7 +64,7 @@ abstract class AbstractSearchCommand : ICommand {
         val items = objectNode["items"]
         if (items.isEmpty) event.reply("No results")
         index = index.coerceIn(0 until items.size())
-        var message = updateMessage(event, items, index)
+        var message = updateMessage(event, event.hook, items, index)
         while (true) {
             val buttonInteractionEvent = message.awaitInteraction()
             if (buttonInteractionEvent.user.idLong != event.user.idLong) continue
@@ -78,12 +79,12 @@ abstract class AbstractSearchCommand : ICommand {
                 "last" -> index = items.size() - 1
             }
             assert(index in 0 until items.size())
-            message = updateMessage(event, items, index)
+            message = updateMessage(event, buttonInteractionEvent.hook, items, index)
         }
     }
 
-    private suspend fun updateMessage(event: SlashCommandInteractionEvent, items: JsonNode, index: Int): Message {
-        return event.hook.editOriginal(getMessage(event, items, index))
+    private suspend fun updateMessage(event: SlashCommandInteractionEvent, hook: InteractionHook, items: JsonNode, index: Int): Message {
+        return hook.editOriginal(getMessage(event, items, index))
             .setActionRows(
                 ActionRow.of(
                     Button.secondary("first", "<< First").withDisabled(index == 0),
