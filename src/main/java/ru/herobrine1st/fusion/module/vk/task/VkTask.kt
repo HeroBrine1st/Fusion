@@ -131,10 +131,14 @@ fun Post.toEmbeds(group: VkGroupEntity, repost: Boolean = false): List<MessageEm
                 is Link -> {
                     embeds.add(
                         EmbedBuilder()
-                            .setTitle(attachment.title, attachment.url)
-                            .setDescription(attachment.description)
-                            .setFooter(attachment.caption)
-                            .setImage(attachment.photo?.getLargestSize()?.url).build()
+                            .apply {
+                                if(attachment.title?.isNotBlank() == true)
+                                    setTitle(attachment.title, attachment.url)
+                                setDescription(attachment.description)
+                                setFooter(attachment.caption)
+                                setImage(attachment.photo?.getLargestSize()?.url)
+                            }
+                            .build()
                     )
                 }
                 else -> {
