@@ -14,7 +14,7 @@ COPY src /src/src
 
 RUN gradle shadowJar
 
-FROM eclipse-temurin:17.0.2_8-jre AS runner
+FROM eclipse-temurin:17-jre-alpine AS runner
 
 WORKDIR /app
 COPY --from=builder /src/build/libs/*.jar /app/Fusion.jar
