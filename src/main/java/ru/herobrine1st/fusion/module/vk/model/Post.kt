@@ -44,6 +44,7 @@ data class Post(
     val isFavorite: Boolean = false
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Views(val count: Int)
 
 @Suppress("unused")
@@ -63,7 +64,7 @@ data class Reposts(
     val count: Int
 )
 
-@JsonIgnoreProperties("user_likes", "can_like", "can_publish")
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Likes(
     val count: Int,
 )

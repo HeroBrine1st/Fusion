@@ -5,6 +5,7 @@ import dev.minn.jda.ktx.await
 import dev.minn.jda.ktx.messages.send
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.utils.TimeUtil
 import net.dv8tion.jda.api.utils.TimeUtil.DISCORD_EPOCH
 import org.slf4j.LoggerFactory
@@ -16,6 +17,13 @@ import ru.herobrine1st.fusion.module.vk.command.VkCommand
 object SlashCommandListener : CoroutineEventListener {
     private val logger = LoggerFactory.getLogger(SlashCommandListener::class.java)
     override suspend fun onEvent(event: GenericEvent) {
+        if(event is MessageReceivedEvent) {
+            println("Received message")
+            event.message.embeds.forEach {
+                println(it.toData().toPrettyString())
+            }
+            return
+        }
         if (event !is SlashCommandInteractionEvent) return
 
         val command: ICommand = when (event.name) {
