@@ -1,12 +1,12 @@
 package ru.herobrine1st.fusion.module.vk.command
 
-import dev.minn.jda.ktx.Message
-import dev.minn.jda.ktx.await
-import dev.minn.jda.ktx.interactions.SelectMenu
+import dev.minn.jda.ktx.coroutines.await
+import dev.minn.jda.ktx.interactions.components.StringSelectMenu
+import dev.minn.jda.ktx.messages.MessageCreate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption
 import org.slf4j.LoggerFactory
@@ -39,11 +39,11 @@ object UnsubscribeSubcommand {
             return
         }
         val message = event.hook.sendMessage(
-            Message {
-                content = "Select groups to unsubscribe"
-                builder.setActionRows(
+            MessageCreate(
+                content = "Select groups to unsubscribe",
+                components = listOf(
                     ActionRow.of(
-                        SelectMenu(
+                        StringSelectMenu(
                             customId = "groups",
                             placeholder = "Select groups to unsubscribe",
                             options = groups.map {
@@ -51,11 +51,11 @@ object UnsubscribeSubcommand {
                             })
                     )
                 )
-            }
+            )
         ).await()
         val selectMenuInteractionEvent = message.awaitInteraction()
         selectMenuInteractionEvent.deferEdit().await()
-        if (selectMenuInteractionEvent !is SelectMenuInteractionEvent)
+        if (selectMenuInteractionEvent !is StringSelectInteractionEvent)
             throw RuntimeException("Unexpected event: ${selectMenuInteractionEvent::class.java}")
         val selectedGroups = selectMenuInteractionEvent.selectedOptions.map { it.value.toInt() }.joinToString(",")
         logger.debug("Selected groups: $selectedGroups")

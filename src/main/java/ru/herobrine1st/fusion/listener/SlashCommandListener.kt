@@ -1,7 +1,7 @@
 package ru.herobrine1st.fusion.listener
 
-import dev.minn.jda.ktx.CoroutineEventListener
-import dev.minn.jda.ktx.await
+import dev.minn.jda.ktx.coroutines.await
+import dev.minn.jda.ktx.events.CoroutineEventListener
 import dev.minn.jda.ktx.messages.send
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent

@@ -1,12 +1,12 @@
 package ru.herobrine1st.fusion.module.vk.command
 
-import dev.minn.jda.ktx.await
+import dev.minn.jda.ktx.coroutines.await
+import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.messages.MessageCreate
 import jakarta.persistence.NoResultException
 import jakarta.persistence.TypedQuery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import org.hibernate.Transaction
 import org.slf4j.LoggerFactory
@@ -34,6 +34,7 @@ object SubscribeSubcommand {
         }
         if (event.guild == null) {
             event.hook.sendMessage("This feature works only in guilds")
+            return
         }
 
         withContext(Dispatchers.IO) {
@@ -116,15 +117,17 @@ object SubscribeSubcommand {
         }
 
         event.hook.sendMessage(
-            MessageBuilder()
-                .setEmbeds(
-                    EmbedBuilder()
-                        .setColor(0x00FF00)
-                        .setAuthor(entity.name, "https://vk.com/club" + entity.id, entity.avatarUrl)
-                        .setDescription("Complete. This message is an example post.")
-                        .build()
+            MessageCreate(
+                embeds = listOf(
+                    Embed(
+                        color = 0x00FF00,
+                        authorName = entity.name,
+                        authorUrl = "https://vk.com/club" + entity.id,
+                        authorIcon = entity.avatarUrl,
+                        description = "Complete. This message is an example post."
+                    )
                 )
-                .build()
+            )
         ).await()
     }
 }

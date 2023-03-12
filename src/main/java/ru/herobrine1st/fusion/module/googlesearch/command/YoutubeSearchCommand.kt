@@ -1,28 +1,18 @@
 package ru.herobrine1st.fusion.module.googlesearch.command
 
 import com.fasterxml.jackson.databind.JsonNode
-import net.dv8tion.jda.api.MessageBuilder
-import net.dv8tion.jda.api.entities.Message
+import dev.minn.jda.ktx.messages.MessageEdit
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData
+import net.dv8tion.jda.api.utils.messages.MessageEditData
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import ru.herobrine1st.fusion.Config.youtubeSearchApiKey
 import ru.herobrine1st.fusion.util.addChoices
 
-/*
-                    GenericArguments.string("query", "Search query"),
-                    GenericArguments.string("type", "Type of resource. Default: video")
-                        .addChoice("video", "video")
-                        .addChoice("playlist", "playlist")
-                        .addChoice("channel", "channel")
-                        .setRequired(false),
-                    GenericArguments.integer("index", "Video index", 0, 49).setRequired(false),
-                    GenericArguments.integer("max", "Maximum result count", 1, 50).setRequired(false)
- */
 object YoutubeSearchCommand : AbstractSearchCommand() {
     private val URL = "https://www.googleapis.com/youtube/v3/search".toHttpUrl()
 
@@ -49,14 +39,13 @@ object YoutubeSearchCommand : AbstractSearchCommand() {
         }
     }
 
-    override fun getMessage(event: SlashCommandInteractionEvent, items: JsonNode, index: Int): Message {
-        return MessageBuilder()
-            .setContent(
-                "Video ${index + 1}/${items.size()} for query \"${event.getOption("query") { it.asString }}\": ${
-                    getUrl(items[index])
-                }"
-            )
-            .build()
+    override fun getMessage(event: SlashCommandInteractionEvent, items: JsonNode, index: Int): MessageEditData {
+        return MessageEdit(
+            content = "Video ${index + 1}/${items.size()} for query \"${
+                event.getOption("query")?.asString
+            }\": ${getUrl(items[index])}"
+        )
+
     }
 
     override val commandData: SlashCommandData

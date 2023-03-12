@@ -28,9 +28,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
 
     // JDA
-    val jdaVersion = "5.0.0-alpha.9"
+    val jdaVersion = "5.0.0-beta.5"
     implementation("net.dv8tion:JDA:$jdaVersion")
-    implementation("com.github.minndevelopment:jda-ktx:9f01b74f4874b765feb1a33a694ee76d755d08fe")
+    implementation("com.github.minndevelopment:jda-ktx:9fc90f616b7c9b68b8680c7bf37d6af361bb0fbb")
 
     // slf4j
     val slf4jVersion = "1.7.36"

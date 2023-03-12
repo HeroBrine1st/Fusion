@@ -3,7 +3,7 @@ package ru.herobrine1st.fusion.listener
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalNotification
-import dev.minn.jda.ktx.await
+import dev.minn.jda.ktx.coroutines.await
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent

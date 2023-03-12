@@ -3,7 +3,7 @@ package ru.herobrine1st.fusion.module.googlesearch.command
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
-import dev.minn.jda.ktx.await
+import dev.minn.jda.ktx.coroutines.await
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Message
@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.utils.messages.MessageEditData
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -85,7 +86,7 @@ abstract class AbstractSearchCommand : ICommand {
 
     private suspend fun updateMessage(event: SlashCommandInteractionEvent, hook: InteractionHook, items: JsonNode, index: Int): Message {
         return hook.editOriginal(getMessage(event, items, index))
-            .setActionRows(
+            .setComponents(
                 ActionRow.of(
                     Button.secondary("first", "<< First").withDisabled(index == 0),
                     Button.primary("prev", "< Prev").withDisabled(index == 0),
@@ -99,5 +100,5 @@ abstract class AbstractSearchCommand : ICommand {
     }
 
     protected abstract fun getUrl(event: SlashCommandInteractionEvent): HttpUrl
-    protected abstract fun getMessage(event: SlashCommandInteractionEvent, items: JsonNode, index: Int): Message
+    protected abstract fun getMessage(event: SlashCommandInteractionEvent, items: JsonNode, index: Int): MessageEditData
 }

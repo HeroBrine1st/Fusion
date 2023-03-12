@@ -1,15 +1,15 @@
 package ru.herobrine1st.fusion.module.googlesearch.command
 
 import com.fasterxml.jackson.databind.JsonNode
-import dev.minn.jda.ktx.EmbedBuilder
-import dev.minn.jda.ktx.MessageBuilder
-import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.TextChannel
+import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.messages.MessageEdit
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import net.dv8tion.jda.api.utils.messages.MessageEditData
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import ru.herobrine1st.fusion.Config
@@ -40,21 +40,24 @@ object ImgSearchCommand : AbstractSearchCommand() {
         }.build()
     }
 
-    override fun getMessage(event: SlashCommandInteractionEvent, items: JsonNode, index: Int): Message {
+    override fun getMessage(event: SlashCommandInteractionEvent, items: JsonNode, index: Int): MessageEditData {
         assert(items.isArray)
         val image = items[index]
-        return MessageBuilder(
-            embed = EmbedBuilder(
-                title = image["title"].asText(),
-                url = image["image"]["contextLink"].asText(),
-                image = image["link"].asText(),
-                footerText = "Image ${index + 1}/${items.size()}",
-            ) {
-                if (image["mime"].asText() == "image/svg+xml")
-                    description = "SVG images may not display on some clients."
-                builder.setColor(Color.GREEN)
-            }.build()
-        ).build()
+
+        return MessageEdit(
+            embeds = listOf(
+                Embed(
+                    title = image["title"].asText(),
+                    url = image["image"]["contextLink"].asText(),
+                    image = image["link"].asText(),
+                    footerText = "Image ${index + 1}/${items.size()}",
+                ) {
+                    if (image["mime"].asText() == "image/svg+xml")
+                        description = "SVG images may not display on some clients."
+                    builder.setColor(Color.GREEN)
+                }
+            )
+        )
     }
 
     override val commandData by lazy {
