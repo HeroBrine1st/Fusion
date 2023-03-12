@@ -11,7 +11,7 @@ object Config {
     val mysqlPort: Int = System.getenv("MYSQL_PORT")?.toInt() ?: 3306
     val mysqlDatabase: String by lazy { System.getenv("MYSQL_DATABASE")!! }
     val vkServiceToken: String by lazy { System.getenv("VK_SERVICE_TOKEN")!! }
-    val ownerId: String = System.getenv("OWNER_ID")!!
+    val ownerId: String by lazy { System.getenv("OWNER_ID")!! }
     val testingGuildId: Long? = System.getenv("TESTING_GUILD_ID")?.toLong()
     val maxComponentInteractionWaits: Long? = System.getenv("MAX_COMPONENT_INTERACTION_WAITS")?.toLong()
     val maxComponentInteractionWaitTimeMinutes: Long? = System.getenv("MAX_COMPONENT_INTERACTION_AWAIT_TIME_SECONDS")?.toLong()
