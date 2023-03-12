@@ -9,5 +9,5 @@ data class Group(
     val screenName: String,
     val isClosed: Boolean,
     val hasPhoto: Boolean,
-    val photo_200: String
+    @Suppress("PropertyName") val photo_200: String? = null
 )

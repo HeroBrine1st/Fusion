@@ -4,6 +4,7 @@ package ru.herobrine1st.fusion.module.vk.entity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.NaturalId;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 @Entity
@@ -21,7 +22,7 @@ public class VkGroupEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column
     private String avatarUrl;
 
     @Column(nullable = false)
@@ -49,11 +50,12 @@ public class VkGroupEntity {
         this.name = name;
     }
 
+    @Nullable
     public String getAvatarUrl() {
         return avatarUrl;
     }
 
-    public void setAvatarUrl(String avatarUrl) {
+    public void setAvatarUrl(@Nullable String avatarUrl) {
         this.avatarUrl = avatarUrl;
     }
 

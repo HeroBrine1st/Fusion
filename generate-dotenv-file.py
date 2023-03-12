@@ -6,7 +6,7 @@ with open("src/main/java/ru/herobrine1st/fusion/Config.kt") as f:
 
 envs = []
 
-for match in re.finditer(r"(\w+)(\??) = System\.getenv\(\"([^\"]+)\"\)", contents):
+for match in re.finditer(r"(\w+)(\??)\s*(?:=|by\s+lazy\s*{)\s*System\.getenv\(\"([^\"]+)\"\)", contents):
     envs.append((match.group(1), match.group(2), match.group(3)))
 
 with open(".env.fusion.sample", "w") as f:

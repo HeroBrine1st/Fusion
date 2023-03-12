@@ -106,7 +106,7 @@ object SubscribeSubcommand {
             sessionFactory.openSession().use { session ->
                 val transaction: Transaction = session.beginTransaction()
                 try {
-                    session.merge(entity)
+                    session.merge(entity) // TODO change to persist?
                     session.persist(vkGroupSubscriber)
                     transaction.commit()
                 } catch (e: Exception) {

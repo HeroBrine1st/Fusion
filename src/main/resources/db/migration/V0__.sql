@@ -2,7 +2,7 @@ CREATE SEQUENCE hibernate_sequence INCREMENT BY 1 START WITH 1;
 
 CREATE TABLE vk_groups (
    id BIGINT NOT NULL AUTO_INCREMENT,
-   avatarUrl VARCHAR(255) NOT NULL,
+   avatarUrl VARCHAR(255),
    lastWallPostId BIGINT NOT NULL,
    name VARCHAR(255) NOT NULL,
    originalLink VARCHAR(255) NOT NULL,
