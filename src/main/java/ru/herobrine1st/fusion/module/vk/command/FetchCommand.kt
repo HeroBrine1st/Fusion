@@ -50,9 +50,9 @@ object FetchCommand {
             }[0]
         } catch (e: VkApiException) {
             if (e.code == 15) {
-                event.hook.sendMessage("Cannot access this post")
+                event.hook.sendMessage("Cannot access this post").await()
             } else {
-                event.hook.sendMessage("Unknown error occurred")
+                event.hook.sendMessage("Unknown error occurred").await()
             }
             e.printStackTrace()
             return
