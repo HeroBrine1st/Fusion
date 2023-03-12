@@ -8,7 +8,7 @@ object Config {
     val mysqlUsername: String = System.getenv("MYSQL_USER")!!
     val mysqlPassword: String = System.getenv("MYSQL_PASSWORD")!!
     val mysqlHost: String = System.getenv("MYSQL_HOST")!!
-    val mysqlPort: Int = System.getenv("MYSQL_PORT")!!.toInt()
+    val mysqlPort: Int = System.getenv("MYSQL_PORT")?.toInt() ?: 3306
     val mysqlDatabase: String = System.getenv("MYSQL_DATABASE")!!
     val vkServiceToken: String = System.getenv("VK_SERVICE_TOKEN")!!
     val ownerId: String = System.getenv("OWNER_ID")!!
