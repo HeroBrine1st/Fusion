@@ -13,11 +13,15 @@ fun Photo.getLargestSize(): Photo.Size {
 }
 
 
-
 fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = false): List<MessageEmbed> {
-    if(copyHistory.isNotEmpty()) return copyHistory.first().toEmbeds(wallName, wallAvatarUrl, true)
+    if (copyHistory.isNotEmpty()) return copyHistory.first().toEmbeds(wallName, wallAvatarUrl, true)
 
-    val modifiedText = text.replace(Regex("""\[[^|]+\|[^]]+]"""), """(\1)[\2]""")
+    val text = text.replace(Regex("""\[[^|]+\|[^]]+]""")) {
+        return@replace "[${
+            if(it.groupValues[1].startsWith("http")) it.groupValues[1]
+            else "https://vk.com/" + it.groupValues[1]
+        }](${it.groupValues[2]})"
+    }
 
     val url = "https://vk.com/wall${ownerId}_$id"
     val embedBuilder = ModifiedEmbedBuilder()
@@ -25,10 +29,10 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
         .setAuthor(wallName, url, wallAvatarUrl)
         .setTimestamp(date)
         .setDescription(
-            if (modifiedText.length > 2048) {
-                val additionalText = "... Post is too big (${modifiedText.length}/2048 symbols)"
-                modifiedText.substring(0, 2048 - additionalText.length) + additionalText
-            } else modifiedText
+            if (text.length > 2048) {
+                val additionalText = "... Post is too big (${text.length}/2048 symbols)"
+                text.substring(0, 2048 - additionalText.length) + additionalText
+            } else text
         )
     val footerBuilder = StringBuilder()
     val embeds: MutableList<MessageEmbed> = ArrayList()
