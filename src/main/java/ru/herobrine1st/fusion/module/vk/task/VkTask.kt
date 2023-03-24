@@ -2,6 +2,8 @@ package ru.herobrine1st.fusion.module.vk.task
 
 import dev.minn.jda.ktx.coroutines.await
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException
 import org.slf4j.LoggerFactory
@@ -29,6 +31,15 @@ fun registerVkTask() {
         val groups = applicationDatabase.vkGroupQueries.getAllWithSubscribers().awaitAsList()
         logger.trace("There's ${groups.size} groups with subscribers")
         val invalidSubscriptions = mutableListOf<Long>()
+
+        fun removeFromDatabase(subscriber: VkChannelSubscription) {
+            logger.info(
+                "Cannot send message to channel ${subscriber.channelId} in guild ${subscriber.guildId} " +
+                        "- removing ${subscriber.id} from subscriptions"
+            )
+            invalidSubscriptions.add(subscriber.id)
+        }
+
         for (group in groups) {
             logger.trace("Fetching group ${group.id} (${group.name}), last post id ${group.lastWallPostId}")
             try {
@@ -48,20 +59,22 @@ fun registerVkTask() {
                     val subscribers =
                         applicationDatabase.vkChannelSubscriptionQueries.getGroupSubscriptions(group.groupId)
                             .awaitAsList()
-                    for (subscriber in subscribers) {
-                        fun removeFromDatabase(subscriber: VkChannelSubscription) {
-                            logger.info(
-                                "Cannot send message to channel ${subscriber.channelId} in guild ${subscriber.guildId} " +
-                                        "- removing ${subscriber.id} from subscriptions"
-                            )
-                            invalidSubscriptions.add(subscriber.id)
-                        }
-                        try {
-                            jda.getGuildById(subscriber.guildId)
-                                ?.getTextChannelById(subscriber.channelId)
-                                ?.sendMessageEmbeds(embeds)?.await() ?: removeFromDatabase(subscriber)
-                        } catch (e: InsufficientPermissionException) {
-                            removeFromDatabase(subscriber)
+                    coroutineScope {
+                        subscribers.forEach { subscriber ->
+                            launch {
+                                try {
+                                    jda.getGuildById(subscriber.guildId)
+                                        ?.getTextChannelById(subscriber.channelId)
+                                        ?.sendMessageEmbeds(embeds)?.await() ?: removeFromDatabase(subscriber)
+                                } catch (e: InsufficientPermissionException) {
+                                    removeFromDatabase(subscriber)
+                                } catch (t: Throwable) {
+                                    logger.error(
+                                        "An error occurred while sending post ${post.id} " +
+                                                "to channel ${subscriber.channelId} in guild ${subscriber.guildId}"
+                                    )
+                                }
+                            }
                         }
                     }
                 }
