@@ -5,6 +5,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.0"
     kotlin("jvm") version "1.6.10"
     application
+    id("app.cash.sqldelight") version "2.0.0-alpha05"
 }
 
 group = "ru.herobrine1st.fusion"
@@ -45,6 +46,13 @@ dependencies {
     implementation("org.hibernate:hibernate-hikaricp:$hibernateVersion")
     implementation("mysql:mysql-connector-java:8.0.26")
 
+    // SQLDelight
+    implementation("app.cash.sqldelight:runtime:2.0.0-alpha05")
+    implementation("app.cash.sqldelight:jdbc-driver:2.0.0-alpha05")
+    implementation("app.cash.sqldelight:coroutines-extensions:2.0.0-alpha05")
+    implementation("com.zaxxer:HikariCP:5.0.1")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.1.0")
+
     // Jackson
     val jacksonVersion = "2.13.1"
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
@@ -59,6 +67,16 @@ dependencies {
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.8.2"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+}
+
+@Suppress("SpellCheckingInspection")
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("ru.herobrinr1st.fusion.database")
+            dialect("app.cash.sqldelight:mysql-dialect:2.0.0-alpha05")
+        }
+    }
 }
 
 java {

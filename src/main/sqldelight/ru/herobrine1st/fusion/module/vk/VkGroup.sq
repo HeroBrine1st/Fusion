@@ -1,0 +1,10 @@
+CREATE TABLE vk_group(
+    id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    groupId BIGINT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    avatarUrl TEXT,
+    lastWallPostId INTEGER NOT NULL
+);
+
+create:
+INSERT INTO vk_group(groupId, name, avatarUrl, lastWallPostId) VALUES (?, ?, ?, ?);

@@ -1,0 +1,7 @@
+CREATE TABLE vk_channel_subscription (
+    id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    guildId BIGINT NOT NULL,
+    channelId BIGINT NOT NULL,
+    groupId BIGINT NOT NULL REFERENCES vk_group(groupId),
+    UNIQUE subscription(channelId, groupId)
+);
