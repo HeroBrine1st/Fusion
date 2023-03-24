@@ -16,7 +16,7 @@ SELECT 0; -- Make it executable
 }
 
 getSubscribedGroups:
-SELECT VkGroup.* FROM VkChannelSubscription
+SELECT VkGroup.name, VkChannelSubscription.id AS subscriptionId FROM VkChannelSubscription
 JOIN VkGroup ON VkGroup.groupId=VkChannelSubscription.groupId
 WHERE VkChannelSubscription.channelId=:channelId;
 
@@ -28,5 +28,3 @@ SELECT ROW_COUNT();
 getGroupSubscriptions:
 SELECT * FROM VkChannelSubscription WHERE groupId=:groupId;
 
-bulkDelete:
-DELETE FROM VkChannelSubscription WHERE id IN :ids;

@@ -12,6 +12,7 @@ import ru.herobrine1st.fusion.database.applicationDatabase
 import ru.herobrine1st.fusion.database.awaitAsList
 import ru.herobrine1st.fusion.database.awaitAsOne
 import ru.herobrine1st.fusion.listener.awaitInteraction
+import ru.herobrine1st.fusion.module.vk.GetSubscribedGroups
 import ru.herobrine1st.fusion.util.abbreviate
 
 private val logger = LoggerFactory.getLogger(UnsubscribeSubcommand::class.java)
@@ -19,7 +20,7 @@ private val logger = LoggerFactory.getLogger(UnsubscribeSubcommand::class.java)
 object UnsubscribeSubcommand {
     suspend fun execute(event: SlashCommandInteractionEvent) {
         event.deferReply(true).await()
-        val groups =
+        val groups: List<GetSubscribedGroups> =
             applicationDatabase.vkChannelSubscriptionQueries.getSubscribedGroups(event.channel.idLong).awaitAsList()
         if (groups.isEmpty()) {
             event.hook.sendMessage("There are no subscriptions in this channel").await()
@@ -34,7 +35,7 @@ object UnsubscribeSubcommand {
                             customId = "groups",
                             placeholder = "Select groups to unsubscribe",
                             options = groups.map {
-                                SelectOption.of(it.name.abbreviate(100), it.id.toString())
+                                SelectOption.of(it.name.abbreviate(100), it.subscriptionId.toString())
                             })
                     )
                 )
@@ -48,15 +49,19 @@ object UnsubscribeSubcommand {
         val deletedCount = try {
             applicationDatabase.vkChannelSubscriptionQueries.unsubscribe(selectedSubscriptions)
                 .awaitAsOne()
-        } catch(t: Throwable) {
+        } catch (t: Throwable) {
             logger.error("Couldn't delete subscription data from database", t)
-            selectMenuInteractionEvent.hook.editOriginal("An unknown error occurred").await()
+            selectMenuInteractionEvent.hook.editOriginal("An unknown error occurred")
+                .setComponents(emptyList())
+                .await()
             return
         }
 
         if (deletedCount > 0) selectMenuInteractionEvent.hook.editOriginal("Success ($deletedCount/${selectedSubscriptions.size})")
+            .setComponents(emptyList())
             .await()
         else selectMenuInteractionEvent.hook.editOriginal("No changes occurred because there's no subscription to any of the selected groups")
+            .setComponents(emptyList())
             .await()
     }
 }

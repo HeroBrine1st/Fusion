@@ -75,7 +75,7 @@ fun registerVkTask() {
         }
         if (invalidSubscriptions.isNotEmpty()) withContext(Dispatchers.Database) {
             logger.info("Doing actual deletion of subscriptions ${invalidSubscriptions.joinToString(",")}")
-            applicationDatabase.vkChannelSubscriptionQueries.bulkDelete(invalidSubscriptions)
+            applicationDatabase.vkChannelSubscriptionQueries.unsubscribe(invalidSubscriptions)
         }
     }
 }
