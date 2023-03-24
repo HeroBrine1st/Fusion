@@ -16,7 +16,7 @@ fun Photo.getLargestSize(): Photo.Size {
 fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = false): List<MessageEmbed> {
     if (copyHistory.isNotEmpty()) return copyHistory.first().toEmbeds(wallName, wallAvatarUrl, true)
 
-    val text = text.replace(Regex("""\[[^|]+\|[^]]+]""")) {
+    val text = text.replace(Regex("""\[([^|]+)\|([^]]+)]""")) {
         return@replace "[${
             if (it.groupValues[1].startsWith("http")) it.groupValues[1]
             else "https://vk.com/" + it.groupValues[1]
