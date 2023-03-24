@@ -1,1 +1,0 @@
-ALTER TABLE vk_groups ADD groupId BIGINT NOT NULL;

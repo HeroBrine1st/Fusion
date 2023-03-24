@@ -12,7 +12,7 @@ object DatabaseFactory {
     lateinit var database: Database
         private set
 
-    suspend fun init(
+    fun init(
         host: String,
         port: Int,
         database: String,
@@ -30,18 +30,21 @@ object DatabaseFactory {
         this.database = Database(
             driver = driver,
         )
-        val version = driver.getVersion()
-        if (version == 0L) driver.migrationBoilerplate {
-            Database.Schema.create(driver).await()
-        } else if (version < Database.Schema.version) driver.migrationBoilerplate {
-            Database.Schema.migrate(driver, version.toInt(), Database.Schema.version).await()
+
+        this.database.transaction {
+            val version = driver.getVersion()
+            if (version == 0L) driver.migrationBoilerplate {
+                Database.Schema.create(driver).value
+            } else if (version < Database.Schema.version) driver.migrationBoilerplate {
+                Database.Schema.migrate(driver, version.toInt(), Database.Schema.version).value
+            }
         }
     }
 
 
     // Legacy from v1.5
-    private suspend fun SqlDriver.getVersion(): Long {
-        execute(null, "CREATE TABLE IF NOT EXISTS metadata(version BIGINT NOT NULL);", 0)
+    private fun SqlDriver.getVersion(): Long {
+        execute(null, "CREATE TABLE IF NOT EXISTS metadata(version BIGINT NOT NULL)", 0)
         return executeQuery(
             identifier = null,
             sql = "SELECT IF(COUNT(*) > 0, version, 0) FROM metadata;",
@@ -50,21 +53,21 @@ object DatabaseFactory {
                 it.getLong(0)!!
             },
             parameters = 0,
-        ).await()
+        ).value
     }
 
-    private suspend fun SqlDriver.setVersion(version: Int) {
-        execute(null, "DELETE FROM metadata;", 0)
+    private fun SqlDriver.setVersion(version: Int) {
+        execute(null, "DELETE FROM metadata;", 0).value
         execute(null, "INSERT INTO metadata VALUES (?);", 1) {
-            bindLong(1, version.toLong())
-        }.await()
+            bindLong(0, version.toLong())
+        }.value
     }
 
-    private suspend inline fun SqlDriver.migrationBoilerplate(crossinline block: suspend () -> Unit) {
+    private inline fun SqlDriver.migrationBoilerplate(crossinline block: () -> Unit) {
         // SQLDelight wtf?? How to set order???
-        execute(null, "SET foreign_key_checks=0", 0).await()
+        execute(null, "SET foreign_key_checks=0", 0).value
         block()
-        execute(null, "SET foreign_key_checks=1", 0).await()
+        execute(null, "SET foreign_key_checks=1", 0).value
         setVersion(Database.Schema.version)
     }
 }

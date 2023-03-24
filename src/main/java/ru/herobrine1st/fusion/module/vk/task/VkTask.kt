@@ -5,13 +5,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException
 import org.slf4j.LoggerFactory
+import ru.herobrine1st.fusion.database.Database
+import ru.herobrine1st.fusion.database.applicationDatabase
+import ru.herobrine1st.fusion.database.await
+import ru.herobrine1st.fusion.database.awaitAsList
 import ru.herobrine1st.fusion.jda
-import ru.herobrine1st.fusion.module.vk.entity.VkGroupEntity
-import ru.herobrine1st.fusion.module.vk.entity.VkGroupSubscriberEntity
+import ru.herobrine1st.fusion.module.vk.VkChannelSubscription
 import ru.herobrine1st.fusion.module.vk.exceptions.VkApiException
 import ru.herobrine1st.fusion.module.vk.util.VkApiUtil
 import ru.herobrine1st.fusion.module.vk.util.toEmbeds
-import ru.herobrine1st.fusion.sessionFactory
 import ru.herobrine1st.fusion.util.scheduleAtFixedRate
 import java.util.concurrent.TimeUnit
 
@@ -19,23 +21,16 @@ private val logger = LoggerFactory.getLogger("VkTask")
 
 fun registerVkTask() {
     scheduleAtFixedRate(
-        initialDelay = 1,
+        initialDelay = 0,
         period = 30,
         unit = TimeUnit.MINUTES
     ) {
-        val groups = withContext(Dispatchers.IO) {
-            sessionFactory.openSession().use { session ->
-                return@withContext session
-                    .createQuery(
-                        "SELECT entity FROM VkGroupEntity entity " +
-                                "JOIN FETCH entity.subscribers " +
-                                "WHERE entity.subscribers IS NOT EMPTY",
-                        VkGroupEntity::class.java
-                    ).resultList
-            }
-        }
-        val pendingRemove = mutableListOf<VkGroupSubscriberEntity>()
+        logger.trace("Fetching subscriptions")
+        val groups = applicationDatabase.vkGroupQueries.getAllWithSubscribers().awaitAsList()
+        logger.trace("There's ${groups.size} groups with subscribers")
+        val invalidSubscriptions = mutableListOf<Long>()
         for (group in groups) {
+            logger.trace("Fetching group ${group.id} (${group.name}), last post id ${group.lastWallPostId}")
             try {
                 VkApiUtil.getWall(-group.groupId)
             } catch (e: VkApiException) {
@@ -45,16 +40,21 @@ fun registerVkTask() {
                 .filterNot { it.isPinned }
                 .filter { it.id > group.lastWallPostId }
                 .asReversed()
-                .forEach { post ->
+                .also {
+                    logger.trace("Sending ${it.size} posts")
+                }
+                .onEach { post ->
                     val embeds = post.toEmbeds(group.name, group.avatarUrl)
-                    group.lastWallPostId = post.id.toLong()
-                    for (subscriber in group.subscribers) {
-                        fun removeFromDatabase(subscriber: VkGroupSubscriberEntity) {
+                    val subscribers =
+                        applicationDatabase.vkChannelSubscriptionQueries.getGroupSubscriptions(group.groupId)
+                            .awaitAsList()
+                    for (subscriber in subscribers) {
+                        fun removeFromDatabase(subscriber: VkChannelSubscription) {
                             logger.info(
                                 "Cannot send message to channel ${subscriber.channelId} in guild ${subscriber.guildId} " +
-                                        "- removing from subscriptions"
+                                        "- removing ${subscriber.id} from subscriptions"
                             )
-                            pendingRemove.add(subscriber)
+                            invalidSubscriptions.add(subscriber.id)
                         }
                         try {
                             jda.getGuildById(subscriber.guildId)
@@ -65,22 +65,17 @@ fun registerVkTask() {
                         }
                     }
                 }
-        }
-        withContext(Dispatchers.IO) {
-            sessionFactory.openSession().use { session ->
-                val transaction = session.beginTransaction()
-                try {
-                    pendingRemove.forEach { session.remove(it) }
-                    groups.forEach { session.merge(it) }
-                    transaction.commit()
-                } catch (e: Exception) {
-                    logger.error(
-                        "Cannot remove invalid subscriptions (${pendingRemove.joinToString(" ") { it.id.toString() }}) from database",
-                        e
-                    )
-                    transaction.rollback()
+                .lastOrNull()?.let {
+                    logger.trace("Updating lastWallPostId to ${it.id}")
+                    applicationDatabase.vkGroupQueries.updateLastWallPostId(
+                        groupId = group.groupId,
+                        lastWallPostId = it.id
+                    ).await()
                 }
-            }
+        }
+        if (invalidSubscriptions.isNotEmpty()) withContext(Dispatchers.Database) {
+            logger.info("Doing actual deletion of subscriptions ${invalidSubscriptions.joinToString(",")}")
+            applicationDatabase.vkChannelSubscriptionQueries.bulkDelete(invalidSubscriptions)
         }
     }
 }

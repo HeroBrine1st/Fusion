@@ -39,19 +39,12 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:$slf4jVersion")
     implementation("org.slf4j:log4j-over-slf4j:$slf4jVersion")
 
-
-    // Hibernate ORM
-    val hibernateVersion = "6.0.0.Final"
-    implementation("org.hibernate:hibernate-core:$hibernateVersion")
-    implementation("org.hibernate:hibernate-hikaricp:$hibernateVersion")
-    implementation("mysql:mysql-connector-java:8.0.26")
-
     // SQLDelight
     implementation("app.cash.sqldelight:runtime:2.0.0-alpha05")
     implementation("app.cash.sqldelight:jdbc-driver:2.0.0-alpha05")
     implementation("app.cash.sqldelight:coroutines-extensions:2.0.0-alpha05")
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.1.0")
+    implementation("mysql:mysql-connector-java:8.0.26")
 
     // Jackson
     val jacksonVersion = "2.13.1"

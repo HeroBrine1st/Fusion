@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM gradle:7.4.2-jdk17 AS builder
+FROM --platform=$BUILDPLATFORM gradle:7.2-jdk17 AS builder
 
 ENV GRADLE_OPTS "-Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false"
 
@@ -17,6 +17,6 @@ RUN gradle shadowJar
 FROM eclipse-temurin:17-jre-alpine AS runner
 
 WORKDIR /app
-COPY --from=builder /src/build/libs/*.jar /app/Fusion.jar
+COPY --from=builder /src/build/libs/*-full.jar /app/Fusion.jar
 
 ENTRYPOINT ["java", "-jar", "Fusion.jar"]

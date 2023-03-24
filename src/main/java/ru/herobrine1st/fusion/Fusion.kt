@@ -5,15 +5,14 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.requests.GatewayIntent
-import org.hibernate.SessionFactory
 import org.slf4j.LoggerFactory
+import ru.herobrine1st.fusion.database.DatabaseFactory
 import ru.herobrine1st.fusion.listener.ButtonInteractionListener
 import ru.herobrine1st.fusion.listener.SlashCommandListener
 import ru.herobrine1st.fusion.module.googlesearch.command.ImgSearchCommand
 import ru.herobrine1st.fusion.module.googlesearch.command.YoutubeSearchCommand
 import ru.herobrine1st.fusion.module.vk.command.VkCommand
 import ru.herobrine1st.fusion.module.vk.task.registerVkTask
-import ru.herobrine1st.fusion.util.constructHibernateConfiguration
 import ru.herobrine1st.fusion.util.minus
 import java.time.Instant
 import java.util.*
@@ -24,8 +23,6 @@ import kotlin.system.exitProcess
 
 lateinit var jda: JDA
     private set
-lateinit var sessionFactory: SessionFactory
-    private set
 private val logger = LoggerFactory.getLogger("Fusion")
 
 fun main(args: Array<String>) {
@@ -35,6 +32,19 @@ fun main(args: Array<String>) {
             .build()
     } catch (e: LoginException) {
         exitWithMessage("Invalid discord token", e)
+    }
+    try {
+        DatabaseFactory.init(
+            host = Config.mysqlHost,
+            port = Config.mysqlPort,
+            database = Config.mysqlDatabase,
+            username = Config.mysqlUsername,
+            password = Config.mysqlPassword,
+            dbms = "mysql"
+        )
+    } catch (t: Throwable) {
+        t.printStackTrace()
+        exitProcess(2)
     }
     jda.awaitReady()
     Runtime.getRuntime().addShutdownHook(Thread { jda.shutdown() })
@@ -49,12 +59,6 @@ fun main(args: Array<String>) {
         if ("no-exit" !in flags) exitProcess(0)
     }
 
-    try {
-        sessionFactory = constructHibernateConfiguration().buildSessionFactory()
-    } catch (t: Throwable) {
-        t.printStackTrace()
-        exitProcess(2)
-    }
     registerVkTask()
     jda.addEventListener(SlashCommandListener, ButtonInteractionListener)
 
@@ -84,5 +88,5 @@ fun updateCommands() {
             VkCommand.commandData
         )
         .complete()
-    logger.info("Updated commands " + if(Config.testingGuildId != null) "in guild ${Config.testingGuildId}" else "globally")
+    logger.info("Updated commands " + if (Config.testingGuildId != null) "in guild ${Config.testingGuildId}" else "globally")
 }

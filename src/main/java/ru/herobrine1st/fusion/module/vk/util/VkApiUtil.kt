@@ -73,7 +73,7 @@ object VkApiUtil {
         )[0]
     }
 
-    suspend fun getWall(ownerId: Long): List<Post> {
+    suspend fun getWall(ownerId: Int): List<Post> {
         return objectMapper.treeToValue(
             executeMethod(
                 getHttpUrlBuilder("wall.get")

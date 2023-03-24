@@ -18,7 +18,7 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
 
     val text = text.replace(Regex("""\[[^|]+\|[^]]+]""")) {
         return@replace "[${
-            if(it.groupValues[1].startsWith("http")) it.groupValues[1]
+            if (it.groupValues[1].startsWith("http")) it.groupValues[1]
             else "https://vk.com/" + it.groupValues[1]
         }](${it.groupValues[2]})"
     }

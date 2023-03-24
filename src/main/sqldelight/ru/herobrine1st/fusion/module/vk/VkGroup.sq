@@ -1,10 +1,25 @@
-CREATE TABLE vk_group(
+CREATE TABLE VkGroup(
     id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    groupId BIGINT UNIQUE NOT NULL,
+    groupId INTEGER UNIQUE NOT NULL,
     name TEXT NOT NULL,
     avatarUrl TEXT,
     lastWallPostId INTEGER NOT NULL
 );
 
-create:
-INSERT INTO vk_group(groupId, name, avatarUrl, lastWallPostId) VALUES (?, ?, ?, ?);
+create {
+INSERT INTO VkGroup(groupId, name, avatarUrl, lastWallPostId)
+VALUES (:groupId, :name, :avatarUrl, :lastWallPostId)
+ON DUPLICATE KEY UPDATE name=VALUES(name), avatarUrl=VALUES(avatarUrl);
+SELECT * FROM VkGroup WHERE groupId=:groupId; -- Simulate returning
+}
+
+updateLastWallPostId {
+UPDATE VkGroup SET lastWallPostId=:lastWallPostId WHERE groupId=:groupId;
+SELECT 0; -- to make it executable
+}
+
+getAllWithSubscribers:
+SELECT * FROM VkGroup
+WHERE (SELECT COUNT(*) FROM VkChannelSubscription
+    WHERE groupId=VkGroup.groupId
+) > 0;

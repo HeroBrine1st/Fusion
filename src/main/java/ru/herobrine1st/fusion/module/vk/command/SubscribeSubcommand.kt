@@ -3,18 +3,14 @@ package ru.herobrine1st.fusion.module.vk.command
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.messages.Embed
 import dev.minn.jda.ktx.messages.MessageCreate
-import jakarta.persistence.NoResultException
-import jakarta.persistence.TypedQuery
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import org.hibernate.Transaction
 import org.slf4j.LoggerFactory
-import ru.herobrine1st.fusion.module.vk.entity.VkGroupEntity
-import ru.herobrine1st.fusion.module.vk.entity.VkGroupSubscriberEntity
+import ru.herobrine1st.fusion.database.applicationDatabase
+import ru.herobrine1st.fusion.database.await
+import ru.herobrine1st.fusion.database.awaitAsOne
+import ru.herobrine1st.fusion.module.vk.VkGroup
 import ru.herobrine1st.fusion.module.vk.exceptions.VkApiException
 import ru.herobrine1st.fusion.module.vk.util.VkApiUtil
-import ru.herobrine1st.fusion.sessionFactory
 import java.util.regex.Pattern
 
 private val logger = LoggerFactory.getLogger(SubscribeSubcommand::class.java)
@@ -36,29 +32,19 @@ object SubscribeSubcommand {
             event.hook.sendMessage("This feature works only in guilds")
             return
         }
-
-        withContext(Dispatchers.IO) {
-            sessionFactory.openSession().use { session ->
-                val query: TypedQuery<Long> = session.createQuery(
-                    "SELECT count(entity) FROM VkGroupSubscriberEntity entity " +
-                            "WHERE entity.channelId=:channelId", Long::class.javaObjectType
-                ).setParameter(
-                    "channelId",
-                    event.channel.idLong
-                )
-                return@withContext query.singleResult
+        applicationDatabase.vkChannelSubscriptionQueries.getChannelSubscriptionsCount(event.channel.idLong)
+            .awaitAsOne()
+            .let { subscribesCount ->
+                if (subscribesCount >= 25) {
+                    event.hook.sendMessage("This channel has reached 25 subscriptions limit").await()
+                    return@execute
+                }
             }
-        }.let { subscribesCount ->
-            if (subscribesCount >= 25) {
-                event.hook.sendMessage("This channel has reached 25 subscriptions limit").await()
-                return@execute
-            }
-        }
 
         val group = try {
             VkApiUtil.getGroupById(matcher.group(2) ?: matcher.group(1)!!)
         } catch (e: VkApiException) {
-            if(e.code == 100) {
+            if (e.code == 100) {
                 event.hook.sendMessage("No such group").await()
                 return
             } else {
@@ -69,51 +55,48 @@ object SubscribeSubcommand {
             event.hook.sendMessage("Group is closed").await()
             return
         }
-        val id = group.id
-        val entity: VkGroupEntity = withContext(Dispatchers.IO) {
-            sessionFactory.openSession().use { session ->
-                val query: TypedQuery<VkGroupEntity> = session.createQuery(
-                    "SELECT entity FROM VkGroupEntity entity " +
-                            "WHERE entity.groupId=:id", VkGroupEntity::class.java
-                )
-                    .setParameter("id", id.toLong())
-                try {
-                    query.singleResult
-                } catch (exception: NoResultException) {
-                    VkGroupEntity().apply {
-                        this.groupId = id.toLong()
-                        lastWallPostId = -1L
-                        originalLink = url
-                    }
-                }
-            }
-        }
-        entity.name = group.name
-        entity.avatarUrl = group.photo_200
-        if (entity.lastWallPostId == -1L) {
-            val firstPost = VkApiUtil.getWall(-entity.groupId).filterNot { it.isPinned }.first()
-            entity.lastWallPostId = firstPost.id.toLong()
-            logger.debug("lastWallPostId: ${entity.lastWallPostId}")
+        val entity: VkGroup = try {
+            applicationDatabase.vkGroupQueries.create(
+                groupId = group.id,
+                lastWallPostId = -1,
+                name = group.name,
+                avatarUrl = group.photo_200
+            ).awaitAsOne()
+        } catch (t: Throwable) {
+            logger.error("Couldn't add group to database", t)
+            event.hook.sendMessage("An unknown error occurred while adding group to database").await()
+            return
         }
 
-        withContext(Dispatchers.IO) {
-            val vkGroupSubscriber = VkGroupSubscriberEntity().apply {
-                this.group = entity
-                channelId = event.channel.idLong
+        if (entity.lastWallPostId == -1) {
+            val firstPost = try {
+                VkApiUtil.getWall(-group.id).filterNot { it.isPinned }.firstOrNull()
+            } catch(t: Throwable) {
+                logger.error("Couldn't fetch vk wall", t)
+                event.hook.sendMessage("An unknown error occurred while fetching wall").await()
+                return
+            }
+            if (firstPost != null) try {
+                applicationDatabase.vkGroupQueries.updateLastWallPostId(
+                    groupId = group.id,
+                    lastWallPostId = firstPost.id
+                ).await()
+            } catch(t: Throwable) {
+                logger.error("Couldn't update lastWallPostId in database", t)
+                event.hook.sendMessage("An unknown error occurred while adding group to database").await()
+                return
+            }
+        }
+        try {
+            applicationDatabase.vkChannelSubscriptionQueries.create(
+                groupId = group.id,
+                channelId = event.channel.idLong,
                 guildId = event.guild!!.idLong
-            }
-
-            sessionFactory.openSession().use { session ->
-                val transaction: Transaction = session.beginTransaction()
-                try {
-                    session.merge(entity) // TODO change to persist?
-                    session.persist(vkGroupSubscriber)
-                    transaction.commit()
-                } catch (e: Exception) {
-                    transaction.rollback()
-                    throw RuntimeException(e)
-                }
-            }
+            ).await()
+        } catch (t: Throwable) {
+            logger.error("Couldn't add subscription to database", t)
+            event.hook.sendMessage("An unknown error occurred while adding subscription to database").await()
+            return
         }
 
         event.hook.sendMessage(

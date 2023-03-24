@@ -1,7 +1,32 @@
-CREATE TABLE vk_channel_subscription (
+CREATE TABLE VkChannelSubscription (
     id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     guildId BIGINT NOT NULL,
     channelId BIGINT NOT NULL,
-    groupId BIGINT NOT NULL REFERENCES vk_group(groupId),
-    UNIQUE subscription(channelId, groupId)
+    groupId INTEGER NOT NULL REFERENCES VkGroup(groupId),
+    UNIQUE INDEX subscription(channelId, groupId),
+    INDEX (groupId)
 );
+
+getChannelSubscriptionsCount:
+SELECT COUNT(*) FROM VkChannelSubscription WHERE channelId=?;
+
+create {
+INSERT INTO VkChannelSubscription(guildId, channelId, groupId) VALUES (:guildId, :channelId, :groupId);
+SELECT 0; -- Make it executable
+}
+
+getSubscribedGroups:
+SELECT VkGroup.* FROM VkChannelSubscription
+JOIN VkGroup ON VkGroup.groupId=VkChannelSubscription.groupId
+WHERE VkChannelSubscription.channelId=:channelId;
+
+unsubscribe {
+DELETE FROM VkChannelSubscription WHERE id IN :ids;
+SELECT ROW_COUNT();
+}
+
+getGroupSubscriptions:
+SELECT * FROM VkChannelSubscription WHERE groupId=:groupId;
+
+bulkDelete:
+DELETE FROM VkChannelSubscription WHERE id IN :ids;
