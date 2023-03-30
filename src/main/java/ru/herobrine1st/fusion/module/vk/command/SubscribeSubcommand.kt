@@ -105,7 +105,7 @@ object SubscribeSubcommand {
                     Embed(
                         color = 0x00FF00,
                         authorName = entity.name,
-                        authorUrl = "https://vk.com/club" + entity.id,
+                        authorUrl = "https://vk.com/club" + entity.groupId,
                         authorIcon = entity.avatarUrl,
                         description = "Complete. This message is an example post."
                     )
