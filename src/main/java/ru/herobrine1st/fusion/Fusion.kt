@@ -5,17 +5,18 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.requests.GatewayIntent
+import net.dv8tion.jda.api.utils.cache.CacheFlag.*
 import org.slf4j.LoggerFactory
 import ru.herobrine1st.fusion.database.DatabaseFactory
 import ru.herobrine1st.fusion.listener.ButtonInteractionListener
 import ru.herobrine1st.fusion.listener.SlashCommandListener
 import ru.herobrine1st.fusion.module.googlesearch.command.ImgSearchCommand
 import ru.herobrine1st.fusion.module.googlesearch.command.YoutubeSearchCommand
+import ru.herobrine1st.fusion.module.spotify.registerSpotifyListener
 import ru.herobrine1st.fusion.module.vk.command.VkCommand
 import ru.herobrine1st.fusion.module.vk.task.registerVkTask
 import ru.herobrine1st.fusion.util.minus
 import java.time.Instant
-import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.security.auth.login.LoginException
 import kotlin.system.exitProcess
@@ -27,8 +28,9 @@ private val logger = LoggerFactory.getLogger("Fusion")
 
 fun main(args: Array<String>) {
     try {
-        jda = JDABuilder.createLight(Config.discordToken, EnumSet.noneOf(GatewayIntent::class.java))
+        jda = JDABuilder.create(Config.discordToken, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
             .setEventManager(CoroutineEventManager())
+            .disableCache(ACTIVITY, VOICE_STATE, EMOJI, STICKER, CLIENT_STATUS, ONLINE_STATUS, SCHEDULED_EVENTS)
             .build()
     } catch (e: LoginException) {
         exitWithMessage("Invalid discord token", e)
@@ -60,6 +62,7 @@ fun main(args: Array<String>) {
     }
 
     registerVkTask()
+    registerSpotifyListener()
     jda.addEventListener(SlashCommandListener, ButtonInteractionListener)
 
     val startup = Instant.now()
