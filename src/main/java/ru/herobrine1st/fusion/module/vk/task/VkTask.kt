@@ -2,8 +2,8 @@ package ru.herobrine1st.fusion.module.vk.task
 
 import dev.minn.jda.ktx.coroutines.await
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException
 import org.slf4j.LoggerFactory
@@ -54,13 +54,13 @@ fun registerVkTask() {
                 .also {
                     logger.trace("Sending ${it.size} posts")
                 }
-                .onEach { post ->
+                .takeWhile { post ->
                     val embeds = post.toEmbeds(group.name, group.avatarUrl)
                     val subscribers =
                         applicationDatabase.vkChannelSubscriptionQueries.getGroupSubscriptions(group.groupId)
                             .awaitAsList()
-                    coroutineScope {
-                        subscribers.forEach { subscriber ->
+                    val jobs = supervisorScope {
+                        subscribers.map { subscriber ->
                             launch {
                                 try {
                                     jda.getGuildById(subscriber.guildId)
@@ -73,10 +73,13 @@ fun registerVkTask() {
                                         "An error occurred while sending post ${post.id} " +
                                                 "to channel ${subscriber.channelId} in guild ${subscriber.guildId}"
                                     )
+                                    throw t
                                 }
                             }
                         }
                     }
+                    // can't send post anywhere => break
+                    jobs.any { !it.isCancelled }
                 }
                 .lastOrNull()?.let {
                     logger.trace("Updating lastWallPostId to ${it.id}")
