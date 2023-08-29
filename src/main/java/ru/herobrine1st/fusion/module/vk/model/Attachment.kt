@@ -40,7 +40,7 @@ sealed class Attachment {
 }
 
 @JsonTypeName("photo")
-@JsonIgnoreProperties("has_tags")
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
 @JsonDeserialize
 data class Photo(
