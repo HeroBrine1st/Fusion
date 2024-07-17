@@ -18,6 +18,8 @@ object SlashCommandListener : CoroutineEventListener {
     override suspend fun onEvent(event: GenericEvent) {
         if (event !is SlashCommandInteractionEvent) return
 
+        logger.info("Received command from ${event.user.name} (${event.user}): /${event.name} ${event.subcommandGroup} ${event.subcommandName} ${event.options}")
+
         val command: ICommand = when (event.name) {
             ImgSearchCommand.commandData.name -> ImgSearchCommand
             YoutubeSearchCommand.commandData.name -> YoutubeSearchCommand

@@ -1,5 +1,6 @@
 package ru.herobrine1st.fusion.module.vk.model
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
@@ -53,7 +54,10 @@ enum class PostType {
     COPY,
     REPLY,
     POSTPONE,
-    SUGGEST;
+    SUGGEST,
+    VIDEO,
+    @JsonEnumDefaultValue
+    UNKNOWN;
 
     @JsonValue
     val apiName = name.lowercase()

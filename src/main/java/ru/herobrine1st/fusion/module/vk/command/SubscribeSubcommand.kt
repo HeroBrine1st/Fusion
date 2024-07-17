@@ -21,7 +21,7 @@ object SubscribeSubcommand {
     private val pattern = Pattern.compile("(?:https?://)?vk\\.com/(?:(?:club|public)(\\d+)|([^/]+))")
 
     suspend fun execute(event: SlashCommandInteractionEvent) {
-        event.deferReply(true).await()
+        event.deferReply(false).await()
         val url = event.getOption(URL_ARGUMENT) { it.asString }!! // Required on discord side
         val matcher = pattern.matcher(url)
         if (!matcher.matches()) {

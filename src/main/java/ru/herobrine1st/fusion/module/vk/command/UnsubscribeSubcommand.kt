@@ -19,7 +19,7 @@ private val logger = LoggerFactory.getLogger(UnsubscribeSubcommand::class.java)
 
 object UnsubscribeSubcommand {
     suspend fun execute(event: SlashCommandInteractionEvent) {
-        event.deferReply(true).await()
+        event.deferReply(false).await()
         val groups: List<GetSubscribedGroups> =
             applicationDatabase.vkChannelSubscriptionQueries.getSubscribedGroups(event.channel.idLong).awaitAsList()
         if (groups.isEmpty()) {

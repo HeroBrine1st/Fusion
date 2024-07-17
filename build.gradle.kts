@@ -31,8 +31,7 @@ dependencies {
     // JDA
     val jdaVersion = "5.0.0-beta.9"
     implementation("net.dv8tion:JDA:$jdaVersion")
-    implementation("com.github.MinnDevelopment:jda-ktx:9370cb13cc64646862e6f885959d67eb4b157e4a")
-
+    implementation("club.minnced:jda-ktx:0.11.0-beta.19")
     // slf4j
     val slf4jVersion = "1.7.36"
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
