@@ -79,7 +79,61 @@ object Audio : Attachment.Internal() // Unsupported
 
 @JsonTypeName("doc")
 @JsonIgnoreProperties(ignoreUnknown = true)
-object Document : Attachment.Internal() // Unsupported
+data class Document(
+    val id: Int,
+    @JsonProperty("owner_id")
+    val ownerId: Int,
+    val title: String,
+    val size: Int,
+    val ext: String,
+    val url: String,
+    val date: Instant, //Unix time
+    val type: Int,
+    @JsonIgnore
+    val preview: Preview
+) : Attachment.Internal() {
+    enum class DocumentType(val int: Int) {
+        Text(1),
+        Archive(2),
+        Gif(3),
+        Image(4),
+        Audio(5),
+        Video(6),
+        Ebook(7),
+        Undefined(8)
+    }
+
+    @JsonTypeName("preview")
+    data class Preview(
+        val photo: Photo?,
+        val graffiti: Graffiti?,
+        @JsonProperty("audio_message")
+        val audioMessage: AudioMessage
+    )
+
+    @JsonTypeName("audio_message")
+    data class AudioMessage(
+        val duration: Int,
+        val waveform: List<Int>,
+        @JsonProperty("link_ogg")
+        val linkOgg: String,
+        @JsonProperty("link_mp3")
+        val linkMp3: String,
+    )
+}
+
+fun Int.toDocumentType(): Document.DocumentType {
+    return when (this) {
+        1 -> Document.DocumentType.Text
+        2 -> Document.DocumentType.Archive
+        3 -> Document.DocumentType.Gif
+        4 -> Document.DocumentType.Image
+        5 -> Document.DocumentType.Audio
+        6 -> Document.DocumentType.Video
+        7 -> Document.DocumentType.Ebook
+        else -> Document.DocumentType.Undefined
+    }
+}
 
 @JsonTypeName("graffiti")
 @JsonIgnoreProperties(ignoreUnknown = true)
