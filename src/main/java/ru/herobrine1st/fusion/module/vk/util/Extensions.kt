@@ -2,9 +2,7 @@ package ru.herobrine1st.fusion.module.vk.util
 
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.MessageEmbed
-import ru.herobrine1st.fusion.module.vk.model.Link
-import ru.herobrine1st.fusion.module.vk.model.Photo
-import ru.herobrine1st.fusion.module.vk.model.Post
+import ru.herobrine1st.fusion.module.vk.model.*
 import ru.herobrine1st.fusion.util.ModifiedEmbedBuilder
 import kotlin.math.min
 
@@ -18,8 +16,11 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
 
     val text = text.replace(Regex("""\[([^|]+)\|([^]]+)]""")) {
         "[${it.groupValues[2]}](${
-            if(it.groupValues[1].startsWith("http")) it.groupValues[1]
-            else "https://vk.com/" + it.groupValues[1]
+            if (it.groupValues[1].startsWith("http")) {
+                it.groupValues[1]
+            } else {
+                "https://vk.com/" + it.groupValues[1]
+            }
         })"
     }
 
@@ -37,7 +38,7 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
     val footerBuilder = StringBuilder()
     val embeds: MutableList<MessageEmbed> = ArrayList()
     if (attachments.isNotEmpty()) {
-        if (attachments.any { it !is Photo && it !is Link }) {
+        if (attachments.any { it !is Photo && it !is Link && it !is Document }) {
             footerBuilder.append("Post contains incompatible attachments\n")
         }
         with(attachments.filterIsInstance<Photo>()) {
@@ -52,6 +53,21 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
                 )
             }
             if (size > 4) footerBuilder.append("Post contains more than 4 images\n")
+        }
+        with(attachments.filterIsInstance<Document>()) {
+            if (this.isEmpty()) return@with
+            with(this.filter { it.type.toDocumentType() == Document.Type.Gif }) {
+                embedBuilder.setImage(this[0].url)
+                this.subList(1, min(4, size)).forEach {
+                    embeds.add(
+                        ModifiedEmbedBuilder()
+                            .setTitle(it.title, it.url)
+                            .setImage(it.url)
+                            .build()
+                    )
+                }
+                if (size > 4) footerBuilder.append("Post containts more that 4 gif")
+            }
         }
         for (attachment in attachments) {
             when (attachment) {
@@ -74,8 +90,9 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
             }
         }
     }
-    if (repost)
+    if (repost) {
         footerBuilder.append("This post is a repost\n")
+    }
     embeds.add(
         0, embedBuilder
             .setFooter(footerBuilder.toString())

@@ -92,7 +92,7 @@ data class Document(
     @JsonIgnore
     val preview: Preview
 ) : Attachment.Internal() {
-    enum class DocumentType(val int: Int) {
+    enum class Type(val int: Int) {
         Text(1),
         Archive(2),
         Gif(3),
@@ -122,16 +122,17 @@ data class Document(
     )
 }
 
-fun Int.toDocumentType(): Document.DocumentType {
+@Suppress("unused")
+fun Int.toDocumentType(): Document.Type {
     return when (this) {
-        1 -> Document.DocumentType.Text
-        2 -> Document.DocumentType.Archive
-        3 -> Document.DocumentType.Gif
-        4 -> Document.DocumentType.Image
-        5 -> Document.DocumentType.Audio
-        6 -> Document.DocumentType.Video
-        7 -> Document.DocumentType.Ebook
-        else -> Document.DocumentType.Undefined
+        1 -> Document.Type.Text
+        2 -> Document.Type.Archive
+        3 -> Document.Type.Gif
+        4 -> Document.Type.Image
+        5 -> Document.Type.Audio
+        6 -> Document.Type.Video
+        7 -> Document.Type.Ebook
+        else -> Document.Type.Undefined
     }
 }
 
