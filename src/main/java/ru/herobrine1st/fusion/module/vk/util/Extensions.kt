@@ -64,26 +64,16 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
             if (urls.size > maxImagesPerEmbed) footerBuilder.append("Post contains more that 4 gif or photo\n")
         }
 
-        for (attachment in attachments) {
-            when (attachment) {
-                is Link -> {
-                    EmbedBuilder()
-                        .apply {
-                            if (attachment.title?.isNotBlank() == true)
-                                setTitle(attachment.title, attachment.url)
-                            setDescription(attachment.description)
-                            setFooter(attachment.caption)
-                            setImage(attachment.photo?.getLargestSize()?.url)
-                        }.let {
-                            if (!it.isEmpty) embeds.add(it.build())
-                        }
-                }
+        attachments.filterIsInstance<Link>()
+            .mapNotNull { attachment ->
+                EmbedBuilder().apply {
+                    attachment.title?.takeIf { it.isNotBlank() }?.let { setTitle(it, attachment.url) }
+                    setDescription(attachment.description)
+                    setFooter(attachment.caption)
+                    setImage(attachment.photo?.getLargestSize()?.url)
+                }.takeIf { !it.isEmpty }?.build()
+            }.let { embeds.addAll(it) }
 
-                else -> {
-                    // no support
-                }
-            }
-        }
     }
     if (repost) {
         footerBuilder.append("This post is a repost\n")
