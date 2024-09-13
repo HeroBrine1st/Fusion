@@ -11,6 +11,8 @@ fun Photo.getLargestSize(): Photo.Size {
 }
 
 
+private const val maxImagesPerEmbed = 4
+
 fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = false): List<MessageEmbed> {
     if (copyHistory.isNotEmpty()) return copyHistory.first().toEmbeds(wallName, wallAvatarUrl, true)
 
@@ -38,37 +40,30 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
     val footerBuilder = StringBuilder()
     val embeds: MutableList<MessageEmbed> = ArrayList()
     if (attachments.isNotEmpty()) {
-        if (attachments.any { it !is Photo && it !is Link && it !is Document }) {
+        if (attachments.any { it !is Photo && it !is Link && it !is Document && it.isNonGifDocument() }) {
             footerBuilder.append("Post contains incompatible attachments\n")
         }
-        with(attachments.filterIsInstance<Photo>()) {
-            if (isEmpty()) return@with
-            embedBuilder.setImage(this[0].getLargestSize().url)
-            this.subList(1, min(4, size)).forEach {
+
+        attachments.mapNotNull {
+            when {
+                it is Photo -> it.getLargestSize().url
+                it is Document && it.type == Document.Type.Gif -> it.url
+                else -> null
+            }
+        }.let { urls: List<String> ->
+            if (urls.isEmpty()) return@let
+            embedBuilder.setImage(urls.first())
+            urls.subList(1, min(maxImagesPerEmbed, urls.size)).forEach {
                 embeds.add(
                     ModifiedEmbedBuilder()
-                        .setTitle(null, url)
-                        .setImage(it.getLargestSize().url)
+                        .setTitle(null, it)
+                        .setImage(it)
                         .build()
                 )
             }
-            if (size > 4) footerBuilder.append("Post contains more than 4 images\n")
+            if (urls.size > maxImagesPerEmbed) footerBuilder.append("Post contains more that 4 gif or photo\n")
         }
-        with(attachments.filterIsInstance<Document>()) {
-            if (this.isEmpty()) return@with
-            with(this.filter { it.type.toDocumentType() == Document.Type.Gif }) {
-                embedBuilder.setImage(this[0].url)
-                this.subList(1, min(4, size)).forEach {
-                    embeds.add(
-                        ModifiedEmbedBuilder()
-                            .setTitle(it.title, it.url)
-                            .setImage(it.url)
-                            .build()
-                    )
-                }
-                if (size > 4) footerBuilder.append("Post containts more that 4 gif")
-            }
-        }
+
         for (attachment in attachments) {
             when (attachment) {
                 is Link -> {
@@ -100,3 +95,6 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
     )
     return embeds
 }
+
+private fun Any.isNonGifDocument(): Boolean =
+    this is Document && type != Document.Type.Gif
