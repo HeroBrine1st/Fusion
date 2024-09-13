@@ -6,10 +6,9 @@ import ru.herobrine1st.fusion.module.vk.model.*
 import ru.herobrine1st.fusion.util.ModifiedEmbedBuilder
 import kotlin.math.min
 
-fun Photo.getLargestSize(): Photo.Size {
-    return sizes.maxByOrNull { it.width }!!
+fun Photo.getLargestSize(): Photo.Size? {
+    return sizes.maxByOrNull { it.width }
 }
-
 
 private const val maxImagesPerEmbed = 4
 
@@ -46,7 +45,7 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
 
         attachments.mapNotNull {
             when {
-                it is Photo -> it.getLargestSize().url
+                it is Photo -> it.getLargestSize()?.url
                 it is Document && it.type == Document.Type.Gif -> it.url
                 else -> null
             }
