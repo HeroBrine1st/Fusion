@@ -88,11 +88,11 @@ data class Document(
     val ext: String,
     val url: String,
     val date: Instant, //Unix time
-    val type: Int,
+    val type: Type,
     @JsonIgnore
     val preview: Preview
 ) : Attachment.Internal() {
-    enum class Type(val int: Int) {
+    enum class Type(@JsonValue val int: Int) {
         Text(1),
         Archive(2),
         Gif(3),
@@ -105,24 +105,48 @@ data class Document(
 
     @JsonTypeName("preview")
     data class Preview(
-        val photo: Photo?,
-        val graffiti: Graffiti?,
+        val photo: Preview.Photo?,
+        val graffiti: Preview.Graffiti?,
         @JsonProperty("audio_message")
         val audioMessage: AudioMessage
-    )
+    ) {
+        data class Photo(val sizes: List<Size>) {
+            data class Size(
+                val url: String,
+                val width: Int,
+                val height: Int,
+                val type: Photo.Size.Type
+            ) {
+                enum class Type(@JsonValue val char: Char) {
+                    Proportional100px('s'),
+                    Proportional130px('m'),
+                    Proportional604px('x'),
+                    Proportional807px('y'),
+                    Proportional1080x1050px('z'),
+                    Original('o'),
+                }
+            }
+        }
 
-    @JsonTypeName("audio_message")
-    data class AudioMessage(
-        val duration: Int,
-        val waveform: List<Int>,
-        @JsonProperty("link_ogg")
-        val linkOgg: String,
-        @JsonProperty("link_mp3")
-        val linkMp3: String,
-    )
+        data class Graffiti(
+            @JsonProperty("src")
+            val url: String,
+            val width: Int,
+            val height: Int
+        )
+
+        @JsonTypeName("audio_message")
+        data class AudioMessage(
+            val duration: Int,
+            val waveform: List<Int>,
+            @JsonProperty("link_ogg")
+            val linkOgg: String,
+            @JsonProperty("link_mp3")
+            val linkMp3: String,
+        )
+    }
 }
 
-@Suppress("unused")
 fun Int.toDocumentType(): Document.Type {
     return when (this) {
         1 -> Document.Type.Text
