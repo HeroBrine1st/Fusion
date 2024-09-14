@@ -46,6 +46,10 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
         if (attachments.any { it !is Photo && it !is Link && (it !is Document || it.type != Document.Type.Gif) }) {
             footerBuilder.append("Post contains incompatible attachments\n")
         }
+        if(attachments.any { it is Document && it.type == Document.Type.Gif }) {
+            // discord limitation: gif images are rendered via webp
+            footerBuilder.append("Post contains gif images\n")
+        }
 
         attachments.mapNotNull {
             when {
