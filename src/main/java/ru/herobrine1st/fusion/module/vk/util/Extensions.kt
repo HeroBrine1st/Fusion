@@ -64,7 +64,7 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
                         .build()
                 )
             }
-            if (urls.size > maxImagesPerEmbed) footerBuilder.append("Post contains more that 4 images\n")
+            if (urls.size > maxImagesPerEmbed) footerBuilder.append("Post contains more than 4 images\n")
         }
 
         attachments.filterIsInstance<Link>()
