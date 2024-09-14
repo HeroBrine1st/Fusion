@@ -89,9 +89,9 @@ data class Document(
     val url: String,
     val date: Instant, //Unix time
     val type: Type,
-    @JsonIgnore
     val preview: Preview
 ) : Attachment.Internal() {
+    @Suppress("unused")
     enum class Type(@JsonValue val int: Int) {
         Text(1),
         Archive(2),
@@ -103,10 +103,9 @@ data class Document(
         Undefined(8)
     }
 
-    @JsonTypeName("preview")
     data class Preview(
-        val photo: Preview.Photo?,
-        val graffiti: Preview.Graffiti?,
+        val photo: Photo?,
+        val graffiti: Graffiti?,
         @JsonProperty("audio_message")
         val audioMessage: AudioMessage
     ) {
@@ -115,8 +114,9 @@ data class Document(
                 val url: String,
                 val width: Int,
                 val height: Int,
-                val type: Photo.Size.Type
+                val type: Type
             ) {
+                @Suppress("unused")
                 enum class Type(@JsonValue val char: Char) {
                     Proportional100px('s'),
                     Proportional130px('m'),
