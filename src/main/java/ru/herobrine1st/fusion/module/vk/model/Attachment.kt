@@ -147,19 +147,6 @@ data class Document(
     }
 }
 
-fun Int.toDocumentType(): Document.Type {
-    return when (this) {
-        1 -> Document.Type.Text
-        2 -> Document.Type.Archive
-        3 -> Document.Type.Gif
-        4 -> Document.Type.Image
-        5 -> Document.Type.Audio
-        6 -> Document.Type.Video
-        7 -> Document.Type.Ebook
-        else -> Document.Type.Undefined
-    }
-}
-
 @JsonTypeName("graffiti")
 @JsonIgnoreProperties(ignoreUnknown = true)
 object Graffiti : Attachment.Internal() // Unsupported
