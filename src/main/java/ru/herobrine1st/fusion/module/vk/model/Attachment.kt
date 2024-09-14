@@ -79,7 +79,75 @@ object Audio : Attachment.Internal() // Unsupported
 
 @JsonTypeName("doc")
 @JsonIgnoreProperties(ignoreUnknown = true)
-object Document : Attachment.Internal() // Unsupported
+data class Document(
+    val id: Int,
+    @JsonProperty("owner_id")
+    val ownerId: Int,
+    val title: String,
+    val size: Int,
+    val ext: String,
+    val url: String,
+    val date: Instant, //Unix time
+    val type: Type,
+    val preview: Preview
+) : Attachment.Internal() {
+    @Suppress("unused")
+    enum class Type(@JsonValue val int: Int) {
+        Text(1),
+        Archive(2),
+        Gif(3),
+        Image(4),
+        Audio(5),
+        Video(6),
+        Ebook(7),
+        Undefined(8)
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Preview(
+        val photo: Photo?,
+        val graffiti: Graffiti?,
+        @JsonProperty("audio_message")
+        val audioMessage: AudioMessage?
+    ) {
+        data class Photo(val sizes: List<Size>) {
+            data class Size(
+                @JsonProperty("src")
+                val url: String,
+                val width: Int,
+                val height: Int,
+                val type: Type
+            ) {
+                @Suppress("unused")
+                enum class Type(@JsonValue val char: Char) {
+                    Proportional100px('s'),
+                    Proportional130px('m'),
+                    Proportional604px('x'),
+                    Proportional807px('y'),
+                    Proportional1080x1050px('z'),
+                    Original('o'),
+                }
+            }
+        }
+
+        data class Graffiti(
+            @JsonProperty("src")
+            val url: String,
+            val width: Int,
+            val height: Int
+        )
+
+        @JsonTypeName("audio_message")
+        data class AudioMessage(
+            val duration: Int,
+            val waveform: List<Int>,
+            @JsonProperty("link_ogg")
+            val linkOgg: String,
+            @JsonProperty("link_mp3")
+            val linkMp3: String,
+        )
+    }
+}
 
 @JsonTypeName("graffiti")
 @JsonIgnoreProperties(ignoreUnknown = true)

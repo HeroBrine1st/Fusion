@@ -2,6 +2,7 @@ package ru.herobrine1st.fusion.module.vk.util
 
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.MessageEmbed
+import ru.herobrine1st.fusion.module.vk.model.Document
 import ru.herobrine1st.fusion.module.vk.model.Link
 import ru.herobrine1st.fusion.module.vk.model.Photo
 import ru.herobrine1st.fusion.module.vk.model.Post
@@ -9,17 +10,22 @@ import ru.herobrine1st.fusion.util.ModifiedEmbedBuilder
 import kotlin.math.min
 
 fun Photo.getLargestSize(): Photo.Size {
-    return sizes.maxByOrNull { it.width }!!
+    // sizes is never empty
+    return sizes.maxBy { it.width }
 }
 
+private const val maxImagesPerEmbed = 4
 
 fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = false): List<MessageEmbed> {
     if (copyHistory.isNotEmpty()) return copyHistory.first().toEmbeds(wallName, wallAvatarUrl, true)
 
     val text = text.replace(Regex("""\[([^|]+)\|([^]]+)]""")) {
         "[${it.groupValues[2]}](${
-            if(it.groupValues[1].startsWith("http")) it.groupValues[1]
-            else "https://vk.com/" + it.groupValues[1]
+            if (it.groupValues[1].startsWith("http")) {
+                it.groupValues[1]
+            } else {
+                "https://vk.com/" + it.groupValues[1]
+            }
         })"
     }
 
@@ -37,45 +43,48 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
     val footerBuilder = StringBuilder()
     val embeds: MutableList<MessageEmbed> = ArrayList()
     if (attachments.isNotEmpty()) {
-        if (attachments.any { it !is Photo && it !is Link }) {
+        if (attachments.any { it !is Photo && it !is Link && (it !is Document || it.type != Document.Type.Gif) }) {
             footerBuilder.append("Post contains incompatible attachments\n")
         }
-        with(attachments.filterIsInstance<Photo>()) {
-            if (isEmpty()) return@with
-            embedBuilder.setImage(this[0].getLargestSize().url)
-            this.subList(1, min(4, size)).forEach {
+        if(attachments.any { it is Document && it.type == Document.Type.Gif }) {
+            // discord limitation: gif images are rendered via webp
+            footerBuilder.append("Post contains animated images\n")
+        }
+
+        attachments.mapNotNull {
+            when {
+                it is Photo -> it.getLargestSize().url
+                it is Document && it.type == Document.Type.Gif -> it.url
+                else -> null
+            }
+        }.let { urls: List<String> ->
+            if (urls.isEmpty()) return@let
+            embedBuilder.setImage(urls.first())
+            urls.subList(1, min(maxImagesPerEmbed, urls.size)).forEach {
                 embeds.add(
                     ModifiedEmbedBuilder()
-                        .setTitle(null, url)
-                        .setImage(it.getLargestSize().url)
+                        .setTitle(null, it)
+                        .setImage(it)
                         .build()
                 )
             }
-            if (size > 4) footerBuilder.append("Post contains more than 4 images\n")
+            if (urls.size > maxImagesPerEmbed) footerBuilder.append("Post contains more than 4 images\n")
         }
-        for (attachment in attachments) {
-            when (attachment) {
-                is Link -> {
-                    EmbedBuilder()
-                        .apply {
-                            if (attachment.title?.isNotBlank() == true)
-                                setTitle(attachment.title, attachment.url)
-                            setDescription(attachment.description)
-                            setFooter(attachment.caption)
-                            setImage(attachment.photo?.getLargestSize()?.url)
-                        }.let {
-                            if (!it.isEmpty) embeds.add(it.build())
-                        }
-                }
 
-                else -> {
-                    // no support
-                }
-            }
-        }
+        attachments.filterIsInstance<Link>()
+            .mapNotNull { attachment ->
+                EmbedBuilder().apply {
+                    attachment.title?.takeIf { it.isNotBlank() }?.let { setTitle(it, attachment.url) }
+                    setDescription(attachment.description)
+                    setFooter(attachment.caption)
+                    setImage(attachment.photo?.getLargestSize()?.url)
+                }.takeIf { !it.isEmpty }?.build()
+            }.let { embeds.addAll(it) }
+
     }
-    if (repost)
+    if (repost) {
         footerBuilder.append("This post is a repost\n")
+    }
     embeds.add(
         0, embedBuilder
             .setFooter(footerBuilder.toString())
@@ -83,3 +92,4 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
     )
     return embeds
 }
+
