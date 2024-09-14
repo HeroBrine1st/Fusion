@@ -2,12 +2,16 @@ package ru.herobrine1st.fusion.module.vk.util
 
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.MessageEmbed
-import ru.herobrine1st.fusion.module.vk.model.*
+import ru.herobrine1st.fusion.module.vk.model.Document
+import ru.herobrine1st.fusion.module.vk.model.Link
+import ru.herobrine1st.fusion.module.vk.model.Photo
+import ru.herobrine1st.fusion.module.vk.model.Post
 import ru.herobrine1st.fusion.util.ModifiedEmbedBuilder
 import kotlin.math.min
 
-fun Photo.getLargestSize(): Photo.Size? {
-    return sizes.maxByOrNull { it.width }
+fun Photo.getLargestSize(): Photo.Size {
+    // sizes is never empty
+    return sizes.maxBy { it.width }
 }
 
 private const val maxImagesPerEmbed = 4
@@ -45,7 +49,7 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
 
         attachments.mapNotNull {
             when {
-                it is Photo -> it.getLargestSize()?.url
+                it is Photo -> it.getLargestSize().url
                 it is Document && it.type == Document.Type.Gif -> it.url
                 else -> null
             }
