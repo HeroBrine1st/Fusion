@@ -39,7 +39,7 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
     val footerBuilder = StringBuilder()
     val embeds: MutableList<MessageEmbed> = ArrayList()
     if (attachments.isNotEmpty()) {
-        if (attachments.any { it !is Photo && it !is Link && it !is Document && it.isNonGifDocument() }) {
+        if (attachments.any { it !is Photo && it !is Link && (it !is Document || it.type != Document.Type.Gif) }) {
             footerBuilder.append("Post contains incompatible attachments\n")
         }
 
@@ -85,5 +85,3 @@ fun Post.toEmbeds(wallName: String, wallAvatarUrl: String?, repost: Boolean = fa
     return embeds
 }
 
-private fun Any.isNonGifDocument(): Boolean =
-    this is Document && type != Document.Type.Gif
