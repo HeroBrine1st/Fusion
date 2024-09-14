@@ -103,14 +103,16 @@ data class Document(
         Undefined(8)
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     data class Preview(
         val photo: Photo?,
         val graffiti: Graffiti?,
         @JsonProperty("audio_message")
-        val audioMessage: AudioMessage
+        val audioMessage: AudioMessage?
     ) {
         data class Photo(val sizes: List<Size>) {
             data class Size(
+                @JsonProperty("src")
                 val url: String,
                 val width: Int,
                 val height: Int,
